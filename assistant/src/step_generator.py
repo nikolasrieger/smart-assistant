@@ -19,7 +19,7 @@ class StepGenerator():
     def __init__(self, api_key: str, action_text: str):
         self.__model = Model(api_key)
         self.__index = 0
-        self.__generate_step_from_action(action_text)
+        self.__step_list = self.__generate_step_from_action(action_text)
 
     def __generate_step_from_action(self, action_text: str):
         template = GenerateStepsTemplate(action_text)
