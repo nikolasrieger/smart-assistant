@@ -1,7 +1,5 @@
-from models.model import Model
-from models.prompts import GenerateStepsTemplate, ReflectStepsTemplate
-from dotenv import load_dotenv
-from os import getenv
+from lib.llm_models.model import Model
+from lib.llm_models.prompts import GenerateStepsTemplate, ReflectStepsTemplate
 
 class StepGenerator():
     def __init__(self, api_key: str):
@@ -17,8 +15,3 @@ class StepGenerator():
         template = ReflectStepsTemplate(action_text, steps)
         result = self.__model.generate(template.prompt(), template.generation_config())
         return result
-
-if __name__ == "__main__":
-    load_dotenv()
-    model = StepGenerator(getenv("GEMINI_API_KEY"))
-    print(model.generate_step_from_action("Open the Google Chrome Browser"))

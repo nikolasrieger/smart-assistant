@@ -1,4 +1,5 @@
-from models.model import Model
+from lib.llm_models.model import Model
+from enum import Enum
 
 class PromptTemplate():
     def __init__(self):
@@ -34,6 +35,20 @@ class ReflectStepsTemplate(PromptTemplate):
         Use this JSON schema:
             Step = {{"step_name": str}}
         Return a 'list[Step]'. If you don't know which steps to perform return an empty JSON.""".format(action_text, steps)
+        self._set_prompt(prompt)
+
+    def generation_config(self):
+        return Model.set_generation_config(response_mime_type ="application/json")
+    
+class ExtractTaskTemplate(PromptTemplate):
+    def __init__(self, action_text: str, tasks: Enum):
+        super().__init__()
+        prompt = """Imagine you are a IT-specialist. You get following task: {}. Break down the task into smaller tasks based on your knowledge. 
+        You have a list of possible tasks you can choose from: Task={}. Return one or more tasks from the list, you have to perform in the correct order.
+        Add a description, where you add details to the chosen task like what to locate, where to click on, etc. 
+        Use this JSON schema:
+            Step = {{"step_name": Task, "description": str}}
+        Return a 'list[Step]'. If you don't know which steps to perform return an empty JSON.""".format(action_text, list(tasks))
         self._set_prompt(prompt)
 
     def generation_config(self):
