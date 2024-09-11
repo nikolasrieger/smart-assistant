@@ -1,6 +1,6 @@
-name: Python Linting Workflow
+name: Python Lint and Format
 
-on:
+on: 
   push:
     branches:
       - main
@@ -9,24 +9,34 @@ on:
       - main
 
 jobs:
-  lint:
+  lint-and-format:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: "3.x"
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          pip install flake8 black
 
-      - name: Lint with Ruff
+      - name: Run Black
+        run: black . --check
+
+      - name: Run Flake8
+        run: flake8 .
+
+      - name: Format and Commit Changes
+        if: always()
         run: |
-          pip install ruff
-          ruff format
-          ruff check --fix
-        continue-on-error: true
+          black .
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add .
+          git commit -m "chore: lint and format" || echo "Nothing to commit"
+          git push origin HEAD
