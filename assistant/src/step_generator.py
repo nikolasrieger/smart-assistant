@@ -2,28 +2,22 @@ from lib.llm_models.model import Model
 from lib.llm_models.prompts import GenerateStepsTemplate, ReflectStepsTemplate, ExtractTaskTemplate
 from lib.web_search.search_engine import SearchEngine
 from context_generator import ContextGenerator
-from enum import Enum
+from step_evaluator import StepEvaluator, Tasks
 from json import loads
 from dotenv import load_dotenv
 from os import getenv
-
-class Tasks(Enum):
-    LEFTCLICK = "Left-Click"
-    RIGHTCLICK = "Right-Click"
-    CLICKANDHOLD = "Click-and-Hold"
-    DOUBLECLICK = "Double-Click"
-    SCROLL = "Scroll"
-    PRESSKEY = "Press-Key"
-    LOCATE = "Locate"
 
 
 class StepGenerator():
     def __init__(self, api_key: str, action_text: str):
         self.__model = Model(api_key)
         self.__context = ContextGenerator(api_key)
+        self.__evaluator = StepEvaluator(api_key)
         self.__index = 0
+        self.__task = action_text
         context = self.__context.generate_context(action_text)
         self.__step_list = loads(self.__generate_step_from_action(action_text, context))
+        self.__additional_info = ""
 
     def __generate_step_from_action(self, action_text: str, context: list = []):
         context_text = ""
@@ -44,12 +38,15 @@ class StepGenerator():
         result = self.__model.generate(template.prompt(), template.generation_config())
         return result
     
-    def next_step(self):
+    def next_step(self, additional_info: str = ""):
         if len(self.__step_list) <= self.__index: return None
+        if additional_info != "": self.__additional_info += additional_info + " "
         step = self.__step_list[self.__index]
         description = step["step_name"]
-        task_list = self.__get_tasks(description)
+        task_list = loads(self.__get_tasks(description))
+        self.__evaluator.evaluate_next_step(task_list, self.__task, self.__additional_info)
         self.__index += 1
+        self.__evaluator.add_finished_step(task_list)
         return task_list
 
     def __get_tasks(self, step_description: str):
