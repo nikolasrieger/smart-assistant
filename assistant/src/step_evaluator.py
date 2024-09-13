@@ -24,7 +24,6 @@ class StepEvaluator():
         self.__steps_done.append(step)
 
     def evaluate_next_step(self, next_step: dict, action_text: str, additional_info: str = ""):
-        #take future steps into account
         template = EvaluateStepTemplate(action_text, self.__steps_done, next_step, Tasks, additional_info)
         result = self.__model.generate(template.prompt(), template.generation_config())
         return result

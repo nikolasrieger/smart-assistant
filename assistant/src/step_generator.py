@@ -55,6 +55,21 @@ class StepGenerator():
         return tasks
 
 
+class StepRetriever():
+    def __init__(self):
+        self.__queue = []
+        self.__step_generator = None
+
+    def new_task(self, api_key: str, action_text: str):
+        self.__step_generator = StepGenerator(api_key, action_text)
+        self.__queue += self.__step_generator.next_step()
+
+    def retrieve_step(self, additional_info: str = ""):
+        if self.__step_generator is None: raise Exception("Step generator not set")
+        if len(self.__queue) == 0: self.__queue += self.__step_generator.next_step(additional_info)
+        return self.__queue.pop(0)
+
+
 if __name__ == "__main__":
     load_dotenv()
     model = StepGenerator(getenv("GEMINI_API_KEY"), "Open the Google Chrome Browser")
