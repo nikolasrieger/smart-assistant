@@ -36,6 +36,9 @@ class StepGenerator():
         self.__index = 0
         return reflected_steps
     
+    def get_steps(self):
+        return self.__step_list, self.__index
+    
     def __reflect_on_steps(self, action_text: str, steps: list):
         template = ReflectStepsTemplate(action_text, steps)
         result = self.__model.generate(template.prompt(), template.generation_config())
