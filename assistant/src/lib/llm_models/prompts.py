@@ -4,6 +4,10 @@ from sys import platform
 
 OS = platform
 
+class TaskChoices(Enum):
+    DIFFERENT = "Different"
+    SAME = "Same"
+
 class PromptTemplate():
     def __init__(self):
         self.__prompt = ""
@@ -73,8 +77,18 @@ class EvaluateStepTemplate(PromptTemplate):
         Add a description, where you add details to the chosen task like what to locate, where to click on, etc.
         Use this JSON schema:
             Step = {{"step_name": Task, "description": str}}
-        Return a 'list[Step]'. If you don't know which steps to perform return an empty JSON.""".format(action_text, info, OS, finished_steps, next_step, list(tasks))
+        Return a 'list[Step]'. If you don't know which steps to perform return an empty JSON.
+        If the there is any additional information to cancel the task, then include 'Cancel-task' as only step.""".format(action_text, info, OS, finished_steps, next_step, list(tasks))
         self._set_prompt(prompt)
 
     def generation_config(self):
         return Model.set_generation_config(response_mime_type ="application/json")
+    
+class ClassifyInputTemplate(PromptTemplate):
+    def __init__(self, input_history: str, input: str):
+        super().__init__()
+        prompt = """Imagine you are a professional classification specialist. You have a history of inputs from a user: {}.
+        Classify the new input as different task or same task: '{}'. """.format(input_history, input)
+
+    def generation_config(self):
+        return Model.set_generation_config(response_mime_type ="text/x.enum", response_schema=TaskChoices)

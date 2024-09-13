@@ -2,8 +2,6 @@ from lib.llm_models.embeddings import EmbeddingModel
 from lib.web_search.search_engine import SearchResult, SearchEngine
 from numpy import array, float32
 from faiss import IndexFlatL2
-from dotenv import load_dotenv
-from os import getenv
 
 class ContextIndex():
     def __init__(self, api_key: str):
