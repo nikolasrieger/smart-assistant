@@ -5,7 +5,7 @@ from faiss import IndexFlatL2
 from dotenv import load_dotenv
 from os import getenv
 
-class ContextGenerator:
+class ContextIndex():
     def __init__(self, api_key: str):
         self.__embedding_model = EmbeddingModel(api_key)
         embedding_len = len(self.__embedding_model.generate_embeddings("embedding length test"))
@@ -19,10 +19,10 @@ class ContextGenerator:
             self.__index.add(embedding_array)
             self.__data.append(text)
 
-    def search(self, search_text: str):
+    def search(self, search_text: str, top_k: int = 2):
         embedding = self.__embedding_model.generate_embeddings(search_text)
         embedding_array = array([embedding], dtype=float32)
-        _, indices = self.__index.search(embedding_array, 3)
+        _, indices = self.__index.search(embedding_array, top_k)
         results = [self.__data[idx] for idx in indices[0]]
         return results
     
@@ -34,11 +34,14 @@ class ContextGenerator:
     def __remove_index(self, index: int):
         self.__index.remove(index)
         self.__data.pop(index)
-    
 
-if __name__ == "__main__":
-    load_dotenv()
-    context = ContextGenerator(getenv("GEMINI_API_KEY"))
-    search = SearchEngine()
-    context.add_data(search.search("How to code an AI?"))
-    print(context.search("How to code an AI?"))
+
+class ContextGenerator():
+    def __init__(self, api_key: str):
+        self.__context_index = ContextIndex(api_key)
+
+    def generate_context(self, search_text: str):
+        search_results = SearchEngine.search(search_text)
+        self.__context_index.add_data(search_results)
+        search_results = self.__context_index.search(search_text)
+        return search_results

@@ -15,13 +15,14 @@ class PromptTemplate():
         return Model.set_generation_config()
     
 class GenerateStepsTemplate(PromptTemplate):
-    def __init__(self, action_text: str):
+    def __init__(self, action_text: str, context: str = ""):
         super().__init__()
         prompt = """Imagine you are a IT-specialist. You get following computer-related task from your boss: {}. 
+        Here is some context to help you from a quick internet search: {}.
         Break down the task into smaller actions based on your knowledge. Use this JSON schema:
             Step = {{"step_name": str}}
         Return a 'list[Step]'. If you don't know which steps to perform or you can't perform it on a comptuer, 
-        return an empty JSON.""".format(action_text)
+        return an empty JSON.""".format(action_text, context)
         self._set_prompt(prompt)
 
     def generation_config(self):

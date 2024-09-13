@@ -1,5 +1,6 @@
 from lib.llm_models.model import Model
 from lib.llm_models.prompts import GenerateStepsTemplate, ReflectStepsTemplate, ExtractTaskTemplate
+from context_generator import ContextGenerator
 from enum import Enum
 from dotenv import load_dotenv
 from os import getenv
@@ -17,10 +18,13 @@ class Tasks(Enum):
 class StepGenerator():
     def __init__(self, api_key: str, action_text: str):
         self.__model = Model(api_key)
+        self.__context = ContextGenerator(api_key)
         self.__index = 0
-        self.__step_list = self.__generate_step_from_action(action_text)
+        context = self.__context.generate_context(action_text)
+        self.__step_list = self.__generate_step_from_action(action_text, context)
 
-    def __generate_step_from_action(self, action_text: str):
+    def __generate_step_from_action(self, action_text: str, context: list = []):
+        #TODO: Scrape pages and insert into template
         template = GenerateStepsTemplate(action_text)
         draft_steps = self.__model.generate(template.prompt(), template.generation_config())
         if len(draft_steps) == 0: raise IndexError("No steps generated")

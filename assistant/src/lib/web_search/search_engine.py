@@ -7,7 +7,7 @@ class SearchResult():
 
 
 class SearchEngine():
-    def search(self, search_text: str):
+    def search(search_text: str):
         search_result_object = search(search_text, advanced=True)
         search_results = []
         for object in search_result_object:
