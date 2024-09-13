@@ -1,7 +1,6 @@
 from lib.llm_models.model import Model
 from lib.llm_models.prompts import GenerateStepsTemplate, ReflectStepsTemplate, ExtractTaskTemplate
 from enum import Enum
-from json import loads
 from dotenv import load_dotenv
 from os import getenv
 
@@ -24,6 +23,7 @@ class StepGenerator():
     def __generate_step_from_action(self, action_text: str):
         template = GenerateStepsTemplate(action_text)
         draft_steps = self.__model.generate(template.prompt(), template.generation_config())
+        if len(draft_steps) == 0: raise IndexError("No steps generated")
         reflected_steps = self.__reflect_on_steps(action_text, draft_steps)
         self.__index = 0
         return reflected_steps
