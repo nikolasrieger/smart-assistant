@@ -7,3 +7,4 @@ class ScreenHandler():
     def get_active_screen(self):
         self.__image = ImageGrab.grab()
         return self.__image
+    
