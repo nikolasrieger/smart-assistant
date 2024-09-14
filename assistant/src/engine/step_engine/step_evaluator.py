@@ -13,6 +13,7 @@ class Tasks(Enum):
     CANCEL_TASK = "Cancel-Task"
     FINISHED_TASK = "Finished-Task"
     SKIP_STEP = "Skip-Step"
+    QUESTION = "Question"
 
 
 class StepEvaluator():

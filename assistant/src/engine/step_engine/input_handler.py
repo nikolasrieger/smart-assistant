@@ -1,4 +1,4 @@
-from step_generator import StepRetriever
+from engine.step_engine.step_generator import StepRetriever
 from lib.llm_models.prompts import ClassifyInputTemplate
 from lib.llm_models.model import Model
 
