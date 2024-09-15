@@ -1,4 +1,5 @@
-from google.generativeai import configure, GenerativeModel, GenerationConfig
+from google.generativeai import configure, GenerativeModel, GenerationConfig, upload_file
+from PIL import Image
 
 class Model():
     def __init__(self, api_key: str):
@@ -9,6 +10,12 @@ class Model():
         res = self.__model.generate_content(prompt, generation_config=generation_config)
         return res.text    
     
+    def generate_with_image(self, prompt: str, image_name: str, generation_config: GenerationConfig):
+        image = upload_file(image_name)
+        res = self.__model.generate_content([image, prompt], generation_config=generation_config)
+        image.delete()
+        return res.text
+        
     def set_generation_config(candidate_count=None, stop_sequences=None, max_output_tokens=None, temperature=None,
                                top_p=None, top_k=None, response_mime_type=None, response_schema=None):
         return GenerationConfig(candidate_count, stop_sequences, max_output_tokens, temperature,

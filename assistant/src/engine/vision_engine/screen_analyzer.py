@@ -1,53 +1,40 @@
-from engine.vision_engine.screen_handler import ScreenHandler
+#from engine.vision_engine.screen_handler import ScreenHandler
 from PIL import Image
-from torch import no_grad, cuda, stack, argmax
-from clip import load, tokenize
 from cv2 import rectangle, imwrite
 from numpy import array
+from lib.llm_models.model import Model
+from lib.llm_models.prompts import CoordinatesTemplate
+from json import loads
+
+#TODO: Get Details
+#TODO: Get TODOS
 
 class ScreenAnalyzer():
-    def __init__(self):
-        self.__device = "cuda" if cuda.is_available() else "cpu"
-        self.__model, self.__preprocess = load("ViT-B/32", device=self.__device)
+    def __init__(self, api_key: str):
+        self.__model = Model(api_key)
 
-    def analyze_image(self, image: Image, text_prompts: list[str]):
-        text = tokenize(text_prompts).to(self.__device)
-        patches, positions = self.__extract_patches(image)
-        patch_tensors = stack([self.__preprocess(Image.fromarray(patch)).to(self.__device) for patch in patches])
-        with no_grad():
-            patch_features = self.__model.encode_image(patch_tensors)
-        with no_grad():
-            text_features = self.__model.encode_text(text)
-        similarities = (patch_features @ text_features.T).softmax(dim=-1)
-        best_patch_per_prompt = argmax(similarities, dim=0)
-        best_positions = []
-        for i, prompt in enumerate(text_prompts):
-            best_patch_idx = best_patch_per_prompt[i]
-            best_position = positions[best_patch_idx.item()]
-            max_similarity = similarities[best_patch_idx, i].item()
-            best_positions.append({"position": best_position, "similarity": max_similarity})
-        return best_positions
-    
-    def __save_image(self, image: Image, positions: list[dict], text_prompts: list[str], best_patch_idx: int):
-            img_np = array(image)
-            best_position = positions[best_patch_idx.item()]
-            x1, y1, x2, y2 = best_position
-            img_with_box = rectangle(img_np.copy(), (x1, y1), (x2, y2), (255, 255, 255), 5)
-            imwrite("image_{}.png".format(i), img_with_box)
+    def analyze_image_coordinates(self, image: Image, image_url: str, prompt: str):
+        template = CoordinatesTemplate(prompt)
+        result = self.__model.generate_with_image(template.prompt(), image_url, template.generation_config())
+        coordinates = loads(result)
+        print(coordinates)
+        x1, y1 = self.__convert_pos((coordinates[1], coordinates[0]), image.size)
+        x2, y2 = self.__convert_pos((coordinates[3], coordinates[2]), image.size)
+        self.__save_image(image, ((x1, y1), (x2, y2)))
+        return (self.__mid_pos(x1, x2), self.__mid_pos(y1, y2))
 
-    def __extract_patches(self, image: Image, patch_size: int = 64, stride: int = 32):
-        image = array(image)
-        patches = []
-        positions = []
-        for y in range(0, image.shape[0] - patch_size + 1, stride):
-            for x in range(0, image.shape[1] - patch_size + 1, stride):
-                patch = image[y:y + patch_size, x:x + patch_size]
-                patches.append(patch)
-                positions.append((x, y, x + patch_size, y + patch_size))
-        return patches, positions
+    def __save_image(self, image: Image, coordinates: tuple[tuple[int, int], tuple[int, int]], path: str = "image.png"):
+        img_np = array(image)
+        x1, y1 = coordinates[0]
+        x2, y2 = coordinates[1]
+        img_with_box = rectangle(img_np.copy(), (x1, y1), (x2, y2), (255, 255, 255), 5)
+        imwrite(path, img_with_box)
+
+    def __convert_pos(self, pos: tuple[str, str], screen_size: tuple[int, int], image_size: tuple[int, int] = (1000, 1000)):
+        return (self.__scale_pos(pos[0], screen_size[0], image_size[0]), self.__scale_pos(pos[1], screen_size[1], image_size[1]))
     
-if __name__ == "__main__":
-    screen_handler = ScreenHandler()
-    screen = screen_handler.get_active_screen()
-    screen_analyzer = ScreenAnalyzer()
-    screen_analyzer.analyze_image(screen)
+    def __scale_pos(self, pos: str, screen_size: int, image_size: int):
+        return int(int(pos) / image_size * screen_size)
+    
+    def __mid_pos(self, pos1: int, pos2: int):
+        return int((pos1 + pos2) / 2)

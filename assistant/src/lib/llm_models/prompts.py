@@ -92,3 +92,13 @@ class ClassifyInputTemplate(PromptTemplate):
 
     def generation_config(self):
         return Model.set_generation_config(response_mime_type ="text/x.enum", response_schema=TaskChoices)
+    
+class CoordinatesTemplate(PromptTemplate):
+    def __init__(self, object_name: str):
+        super().__init__()
+        prompt = """Return the bounding box around the {} in exact this format: [y_min, x_min, y_max, x_max]. If the object is not present return an empty list.
+        """.format(object_name)
+        self._set_prompt(prompt)
+
+    def generation_config(self):
+        return Model.set_generation_config()
