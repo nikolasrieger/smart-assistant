@@ -86,6 +86,7 @@ class EvaluateStepTemplate(PromptTemplate):
         next_step: dict,
         tasks: Enum,
         additional_info: str,
+        screen_details: str,
     ):
         super().__init__()
         if additional_info != "":
@@ -95,6 +96,7 @@ class EvaluateStepTemplate(PromptTemplate):
         else:
             info = ""
         prompt = """Imagine you are a IT-specialist. You get following task from your boss: {}. {} Your OS is {}. 
+        This is what you see on your screen: {}.
         Here is a list of steps you already performed: {}. 
         Evaluate the next step: {} you have to perform, if it is not done and makes sense, just return it, else return a fitting next step.
         You have a list of possible tasks you can choose from: Task={}. 
@@ -103,7 +105,13 @@ class EvaluateStepTemplate(PromptTemplate):
             Step = {{"step_name": Task, "description": str}}
         Return a 'list[Step]'. If you don't know which steps to perform return an empty JSON.
         If the there is any additional information to cancel the task, then include 'Cancel-task' as only step.""".format(
-            action_text, info, OS, finished_steps, next_step, list(tasks)
+            action_text,
+            info,
+            OS,
+            screen_details,
+            finished_steps,
+            next_step,
+            list(tasks),
         )
         self._set_prompt(prompt)
 

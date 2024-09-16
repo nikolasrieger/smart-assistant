@@ -3,7 +3,6 @@ from lib.llm_models.model import Model
 from engine.vision_engine.screen_analyzer import ScreenAnalyzer
 
 
-#TODO: Incorporate ScreenAnalyzer (Details + TODOS)
 class InputHandler:
     def __init__(self, model: Model):
         self.__screen_analyzer = ScreenAnalyzer(model)
@@ -21,7 +20,7 @@ class InputHandler:
             self.__input_history += input_history
         else:
             self.__input_history = input
-    
+
     def get_input(self):
         input = self.__input
         self.__input = ""
@@ -29,3 +28,6 @@ class InputHandler:
             return "Oldinfo: {}".format(input)
         else:
             return "Old info: {}\nNew info: {}".format(self.__input_history, input)
+
+    def get_screen_details(self):
+        self.__screen_analyzer.analyze_image_details()
