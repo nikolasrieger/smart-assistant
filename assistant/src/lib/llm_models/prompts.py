@@ -10,6 +10,11 @@ class TaskChoices(Enum):
     SAME = "Same"
 
 
+class TaskDone(Enum):
+    Done = "Done"
+    NOTDONE = "Not-Done"
+
+
 class PromptTemplate:
     def __init__(self):
         self.__prompt = ""
@@ -152,6 +157,11 @@ class ImageTaskDoneTemplate(PromptTemplate):
     def __init__(self, task: str):
         super().__init__()
         prompt = """Imagine you are a IT-specialist. You get following task from your boss: {}. Analyze with the screenshot provided if the
-        task is done or not. Return 'Done' or 'Not-Done'.
+        task is done or not.
         """.format(task)
         self._set_prompt(prompt)
+
+    def generation_config(self):
+        return Model.set_generation_config(
+            response_mime_type="text/x.enum", response_schema=TaskDone
+        )
