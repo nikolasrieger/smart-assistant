@@ -4,6 +4,10 @@ from os import getenv
 from PIL import Image
 from engine.vision_engine.screen_analyzer import ScreenAnalyzer
 
+#TODO: Add visual Information to InputHandler
+#TODO: Add speech support
+#TODO: Actually do the tasks
+
 if __name__ == "__main__":
     """load_dotenv()
     input_handler = InputHandler(getenv("GEMINI_API_KEY"))
