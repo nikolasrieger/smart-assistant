@@ -1,5 +1,3 @@
-Sure! Here’s your project description with some emojis to make it more engaging:
-
 # 🚀 Smart Assistant for Computer Interaction
 
 ## Overview
