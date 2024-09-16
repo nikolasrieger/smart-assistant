@@ -1,7 +1,8 @@
 beautifulsoup4==4.12.3
 faiss_cpu==1.8.0.post1
+google_generativeai==0.8.1
 googlesearch_python==1.2.5
-numpy==2.1.1
+numpy==1.26.4
 opencv_python==4.9.0.80
 opencv_python_headless==4.10.0.84
 Pillow==10.4.0
