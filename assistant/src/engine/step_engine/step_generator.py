@@ -8,6 +8,7 @@ from lib.web_search.search_engine import SearchEngine
 from engine.step_engine.context_generator import ContextGenerator
 from lib.llm_models.embeddings import EmbeddingModel
 from engine.step_engine.step_evaluator import StepEvaluator, Tasks
+from engine.step_engine.input_handler import InputHandler
 from json import loads
 
 
@@ -66,26 +67,22 @@ class StepGenerator:
 
 
 class StepRetriever:
-    def __init__(self, model: Model, embedding_model: EmbeddingModel):
+    def __init__(self, model: Model, embedding_model: EmbeddingModel, input_handler: InputHandler):
         self.__queue = []
         self.__step_generator = None
         self.__model = model
         self.__embedding_model = embedding_model
         self.__additional_info = ""
-        self.__override_additional_info = ""
+        self.__input_handler = input_handler
 
     def new_task(self, action_text: str):
         self.__step_generator = StepGenerator(self.__model, self.__embedding_model, action_text)
         self.__queue += self.__step_generator.next_step()
 
-    def add_additional_info(self, additional_info: str, overrider: str):
-        self.__additional_info = additional_info
-        self.__override_additional_info = overrider
-
     def retrieve_step(self):
         if self.__step_generator is None:
             raise Exception("Step generator not set")
         if len(self.__queue) == 0:
+            self.__additional_info = self.__input_handler.get_input()
             self.__queue += self.__step_generator.next_step(self.__additional_info)
-        self.__additional_info = self.__override_additional_info
         return self.__queue.pop(0)
