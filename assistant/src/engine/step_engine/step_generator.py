@@ -71,14 +71,21 @@ class StepRetriever:
         self.__step_generator = None
         self.__model = model
         self.__embedding_model = embedding_model
+        self.__additional_info = ""
+        self.__override_additional_info = ""
 
     def new_task(self, action_text: str):
         self.__step_generator = StepGenerator(self.__model, self.__embedding_model, action_text)
         self.__queue += self.__step_generator.next_step()
 
-    def retrieve_step(self, additional_info: str = ""):
+    def add_additional_info(self, additional_info: str, overrider: str):
+        self.__additional_info = additional_info
+        self.__override_additional_info = overrider
+
+    def retrieve_step(self):
         if self.__step_generator is None:
             raise Exception("Step generator not set")
         if len(self.__queue) == 0:
-            self.__queue += self.__step_generator.next_step(additional_info)
+            self.__queue += self.__step_generator.next_step(self.__additional_info)
+        self.__additional_info = self.__override_additional_info
         return self.__queue.pop(0)
