@@ -24,8 +24,8 @@ class Task:
 
 
 class StepEvaluator:
-    def __init__(self, api_key: str):
-        self.__model = Model(api_key)
+    def __init__(self, model: Model):
+        self.__model = model
         self.__steps_done = []
 
     def add_finished_step(self, step: dict):

@@ -5,8 +5,8 @@ from faiss import IndexFlatL2
 
 
 class ContextIndex:
-    def __init__(self, api_key: str):
-        self.__embedding_model = EmbeddingModel(api_key)
+    def __init__(self, embedding_model: EmbeddingModel):
+        self.__embedding_model = EmbeddingModel(embedding_model)
         embedding_len = len(
             self.__embedding_model.generate_embeddings("embedding length test")
         )
@@ -41,8 +41,8 @@ class ContextIndex:
 
 
 class ContextGenerator:
-    def __init__(self, api_key: str):
-        self.__context_index = ContextIndex(api_key)
+    def __init__(self, embedding_model: EmbeddingModel):
+        self.__context_index = ContextIndex(embedding_model)
 
     def generate_context(self, search_text: str):
         search_results = SearchEngine.search(search_text)

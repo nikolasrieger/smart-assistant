@@ -1,13 +1,13 @@
 from engine.step_engine.step_generator import StepRetriever
 from lib.llm_models.prompts import ClassifyInputTemplate
 from lib.llm_models.model import Model
+from lib.llm_models.embeddings import EmbeddingModel
 
 
 class InputHandler:
-    def __init__(self, api_key: str):
-        self.__api_key = api_key
-        self.__step_retriever = StepRetriever()
-        self.__model = Model(api_key)
+    def __init__(self, model: Model, embedding_model: EmbeddingModel):
+        self.__step_retriever = StepRetriever(model, embedding_model)
+        self.__model = model
         self.__input_history = ""
 
     def add_input(self, input: str):
@@ -19,7 +19,7 @@ class InputHandler:
             self.__input_history += input
         else:
             self.__input_history = input
-            self.__step_retriever.new_task(self.__api_key, input)
+            self.__step_retriever.new_task(self.__model, input)
 
     def get_input(self):
         return self.__input_history

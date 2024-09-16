@@ -13,8 +13,8 @@ from json import loads
 
 
 class ScreenAnalyzer:
-    def __init__(self, api_key: str):
-        self.__model = Model(api_key)
+    def __init__(self, model: Model):
+        self.__model = model
         self.__screen_handler = ScreenHandler()
 
     def analyze_image_coordinates(self, prompt: str, image: Image = None):

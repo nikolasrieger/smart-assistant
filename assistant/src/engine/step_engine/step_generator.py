@@ -6,15 +6,16 @@ from lib.llm_models.prompts import (
 )
 from lib.web_search.search_engine import SearchEngine
 from engine.step_engine.context_generator import ContextGenerator
+from lib.llm_models.embeddings import EmbeddingModel
 from engine.step_engine.step_evaluator import StepEvaluator, Tasks
 from json import loads
 
 
 class StepGenerator:
-    def __init__(self, api_key: str, action_text: str):
-        self.__model = Model(api_key)
-        self.__context = ContextGenerator(api_key)
-        self.__evaluator = StepEvaluator(api_key)
+    def __init__(self, model: Model, embedding_model: EmbeddingModel, action_text: str):
+        self.__model = model
+        self.__context = ContextGenerator(embedding_model)
+        self.__evaluator = StepEvaluator(model)
         self.__index = 0
         self.__task = action_text
         context = self.__context.generate_context(action_text)
@@ -65,12 +66,14 @@ class StepGenerator:
 
 
 class StepRetriever:
-    def __init__(self):
+    def __init__(self, model: Model, embedding_model: EmbeddingModel):
         self.__queue = []
         self.__step_generator = None
+        self.__model = model
+        self.__embedding_model = embedding_model
 
-    def new_task(self, api_key: str, action_text: str):
-        self.__step_generator = StepGenerator(api_key, action_text)
+    def new_task(self, action_text: str):
+        self.__step_generator = StepGenerator(self.__model, self.__embedding_model, action_text)
         self.__queue += self.__step_generator.next_step()
 
     def retrieve_step(self, additional_info: str = ""):
