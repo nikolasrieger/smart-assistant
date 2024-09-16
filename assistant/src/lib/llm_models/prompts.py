@@ -4,11 +4,13 @@ from sys import platform
 
 OS = platform
 
+
 class TaskChoices(Enum):
     DIFFERENT = "Different"
     SAME = "Same"
 
-class PromptTemplate():
+
+class PromptTemplate:
     def __init__(self):
         self.__prompt = ""
 
@@ -17,10 +19,11 @@ class PromptTemplate():
 
     def prompt(self):
         return self.__prompt
-    
+
     def generation_config(self):
         return Model.set_generation_config()
-    
+
+
 class GenerateStepsTemplate(PromptTemplate):
     def __init__(self, action_text: str, context: str = ""):
         super().__init__()
@@ -29,12 +32,13 @@ class GenerateStepsTemplate(PromptTemplate):
         Break down the task into smaller actions based on your knowledge. Use this JSON schema:
             Step = {{"step_name": str}}
         Return a 'list[Step]'. If you don't know which steps to perform or you can't perform it on a comptuer, 
-        return an empty JSON.""".format(action_text, OS,  context)
+        return an empty JSON.""".format(action_text, OS, context)
         self._set_prompt(prompt)
 
     def generation_config(self):
-        return Model.set_generation_config(response_mime_type ="application/json")
-    
+        return Model.set_generation_config(response_mime_type="application/json")
+
+
 class ReflectStepsTemplate(PromptTemplate):
     def __init__(self, action_text: str, steps: list):
         super().__init__()
@@ -43,12 +47,15 @@ class ReflectStepsTemplate(PromptTemplate):
         Reflect if each step makes sense and if the steps are in the correct order. Change wrong steps and/ or add missing steps.
         Use this JSON schema:
             Step = {{"step_name": str}}
-        Return a 'list[Step]'. If you don't know which steps to perform return an empty JSON.""".format(action_text, OS, steps)
+        Return a 'list[Step]'. If you don't know which steps to perform return an empty JSON.""".format(
+            action_text, OS, steps
+        )
         self._set_prompt(prompt)
 
     def generation_config(self):
-        return Model.set_generation_config(response_mime_type ="application/json")
-    
+        return Model.set_generation_config(response_mime_type="application/json")
+
+
 class ExtractTaskTemplate(PromptTemplate):
     def __init__(self, action_text: str, tasks: Enum):
         super().__init__()
@@ -63,13 +70,25 @@ class ExtractTaskTemplate(PromptTemplate):
         self._set_prompt(prompt)
 
     def generation_config(self):
-        return Model.set_generation_config(response_mime_type ="application/json")
-    
+        return Model.set_generation_config(response_mime_type="application/json")
+
+
 class EvaluateStepTemplate(PromptTemplate):
-    def __init__(self, action_text: str, finished_steps: list, next_step: dict, tasks: Enum, additional_info: str):
+    def __init__(
+        self,
+        action_text: str,
+        finished_steps: list,
+        next_step: dict,
+        tasks: Enum,
+        additional_info: str,
+    ):
         super().__init__()
-        if additional_info != "": info = "You got this additional info from your boss: {}, include it in your evaluation.".format(additional_info)
-        else: info = ""
+        if additional_info != "":
+            info = "You got this additional info from your boss: {}, include it in your evaluation.".format(
+                additional_info
+            )
+        else:
+            info = ""
         prompt = """Imagine you are a IT-specialist. You get following task from your boss: {}. {} Your OS is {}. 
         Here is a list of steps you already performed: {}. 
         Evaluate the next step: {} you have to perform, if it is not done and makes sense, just return it, else return a fitting next step.
@@ -78,33 +97,44 @@ class EvaluateStepTemplate(PromptTemplate):
         Use this JSON schema:
             Step = {{"step_name": Task, "description": str}}
         Return a 'list[Step]'. If you don't know which steps to perform return an empty JSON.
-        If the there is any additional information to cancel the task, then include 'Cancel-task' as only step.""".format(action_text, info, OS, finished_steps, next_step, list(tasks))
+        If the there is any additional information to cancel the task, then include 'Cancel-task' as only step.""".format(
+            action_text, info, OS, finished_steps, next_step, list(tasks)
+        )
         self._set_prompt(prompt)
 
     def generation_config(self):
-        return Model.set_generation_config(response_mime_type ="application/json")
-    
+        return Model.set_generation_config(response_mime_type="application/json")
+
+
 class ClassifyInputTemplate(PromptTemplate):
     def __init__(self, input_history: str, input: str):
         super().__init__()
         prompt = """Imagine you are a professional classification specialist. You have a history of inputs from a user: {}.
-        Classify the new input as different task or same task: '{}'. """.format(input_history, input)
+        Classify the new input as different task or same task: '{}'. """.format(
+            input_history, input
+        )
+        self._set_prompt(prompt)
 
     def generation_config(self):
-        return Model.set_generation_config(response_mime_type ="text/x.enum", response_schema=TaskChoices)
-    
+        return Model.set_generation_config(
+            response_mime_type="text/x.enum", response_schema=TaskChoices
+        )
+
+
 class ImageCoordinatesTemplate(PromptTemplate):
     def __init__(self, object_name: str):
         super().__init__()
         prompt = """Return the bounding box around the {} in exact this format: [y_min, x_min, y_max, x_max]. If the object is not present return an empty list.
         """.format(object_name)
         self._set_prompt(prompt)
-    
+
+
 class ImageDetailsTemplate(PromptTemplate):
     def __init__(self):
         super().__init__()
         prompt = """Analyze the following image and return a destription of the image with as many details as possible."""
         self._set_prompt(prompt)
+
 
 class ImageTODOSTemplate(PromptTemplate):
     def __init__(self):
@@ -116,6 +146,7 @@ class ImageTODOSTemplate(PromptTemplate):
         - If there is some popup, close it or react accordingly.
         If there are no tasks to do, return an empty list."""
         self._set_prompt(prompt)
+
 
 class ImageTaskDoneTemplate(PromptTemplate):
     def __init__(self, task: str):

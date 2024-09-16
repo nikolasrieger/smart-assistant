@@ -2,6 +2,7 @@ from lib.llm_models.prompts import EvaluateStepTemplate
 from lib.llm_models.model import Model
 from enum import Enum
 
+
 class Tasks(Enum):
     LEFTCLICK = "Left-Click"
     RIGHTCLICK = "Right-Click"
@@ -15,12 +16,14 @@ class Tasks(Enum):
     SKIP_STEP = "Skip-Step"
     QUESTION = "Question"
 
-class Task():
+
+class Task:
     def __init__(self, task: Tasks, task_info: dict):
         self.task = task
         self.task_info = task_info
 
-class StepEvaluator():
+
+class StepEvaluator:
     def __init__(self, api_key: str):
         self.__model = Model(api_key)
         self.__steps_done = []
@@ -28,7 +31,11 @@ class StepEvaluator():
     def add_finished_step(self, step: dict):
         self.__steps_done.append(step)
 
-    def evaluate_next_step(self, next_step: dict, action_text: str, additional_info: str = ""):
-        template = EvaluateStepTemplate(action_text, self.__steps_done, next_step, Tasks, additional_info)
+    def evaluate_next_step(
+        self, next_step: dict, action_text: str, additional_info: str = ""
+    ):
+        template = EvaluateStepTemplate(
+            action_text, self.__steps_done, next_step, Tasks, additional_info
+        )
         result = self.__model.generate(template.prompt(), template.generation_config())
         return result
