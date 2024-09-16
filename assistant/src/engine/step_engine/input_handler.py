@@ -9,6 +9,7 @@ class InputHandler:
         self.__model = model
         self.__input_history = ""
         self.__input = ""
+        self.__cancel_task = False
 
     def add_input(self, input: str):
         template = ClassifyInputTemplate(self.__input_history, input)
@@ -20,6 +21,12 @@ class InputHandler:
             self.__input_history += input_history
         else:
             self.__input_history = input
+            self.__cancel_task = True
+
+    def cancel_task(self):
+        cancel_task = self.__cancel_task
+        self.__cancel_task = False
+        return cancel_task
 
     def get_input(self):
         input = self.__input

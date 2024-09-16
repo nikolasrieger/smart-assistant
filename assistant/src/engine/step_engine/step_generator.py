@@ -1,7 +1,6 @@
 from lib.llm_models.model import Model
 from lib.llm_models.prompts import (
     GenerateStepsTemplate,
-    ReflectStepsTemplate,
     ExtractTaskTemplate,
 )
 from lib.web_search.search_engine import SearchEngine
@@ -21,29 +20,20 @@ class StepGenerator:
         self.__task = action_text
         context = self.__context.generate_context(action_text)
         self.__step_list = loads(self.__generate_step_from_action(action_text, context))
-        self.__additional_info = ""
 
     def __generate_step_from_action(self, action_text: str, context: list = []):
         context_text = ""
         for webpage in context:
             context_text += SearchEngine.get_text_from_url(webpage.url) + "\n"
         template = GenerateStepsTemplate(action_text, context_text)
-        draft_steps = self.__model.generate(
-            template.prompt(), template.generation_config()
-        )
-        if len(loads(draft_steps)) == 0:
+        steps = self.__model.generate(template.prompt(), template.generation_config())
+        if len(loads(steps)) == 0:
             raise IndexError("No steps generated")
-        reflected_steps = self.__reflect_on_steps(action_text, draft_steps)
         self.__index = 0
-        return reflected_steps
+        return steps
 
     def get_steps(self):
         return self.__step_list, self.__index
-
-    def __reflect_on_steps(self, action_text: str, steps: list):
-        template = ReflectStepsTemplate(action_text, steps)
-        result = self.__model.generate(template.prompt(), template.generation_config())
-        return result
 
     def next_step(self, screen_details: str, additional_info: str = ""):
         if len(self.__step_list) <= self.__index:
@@ -78,11 +68,15 @@ class StepRetriever:
         self.__step_generator = StepGenerator(
             self.__model, self.__embedding_model, action_text
         )
-        self.__queue += self.__step_generator.next_step()
+        screen_details = self.__input_handler.get_screen_details()
+        self.__queue = self.__step_generator.next_step(screen_details)
 
     def retrieve_step(self):
         if self.__step_generator is None:
             raise Exception("Step generator not set")
+        if self.__input_handler.cancel_task():
+            task_info = self.__input_handler.get_input()
+            self.new_task(task_info)
         if len(self.__queue) == 0:
             additional_info = self.__input_handler.get_input()
             screen_details = self.__input_handler.get_screen_details()

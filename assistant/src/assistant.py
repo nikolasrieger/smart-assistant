@@ -3,7 +3,9 @@ from os import getenv
 from lib.llm_models.model import Model
 from lib.llm_models.embeddings import EmbeddingModel
 from engine.step_engine.input_handler import InputHandler
+from engine.step_engine.step_generator import StepRetriever
 
+# TODO: Try running on windows
 # TODO: Add speech support
 # TODO: Actually do the tasks (Coordinates, Task Done, TODOS)
 # TODO: maybe something with Screen Delta?
@@ -13,3 +15,6 @@ if __name__ == "__main__":
     model = Model(getenv("GEMINI_API_KEY"))
     embedding_model = EmbeddingModel(getenv("GEMINI_API_KEY"))
     input_handler = InputHandler(model)
+    step_retriever = StepRetriever(model, embedding_model, input_handler)
+    step_retriever.new_task("Open Mozilla Firefox")
+    print(step_retriever.retrieve_step())

@@ -6,7 +6,7 @@ from faiss import IndexFlatL2
 
 class ContextIndex:
     def __init__(self, embedding_model: EmbeddingModel):
-        self.__embedding_model = EmbeddingModel(embedding_model)
+        self.__embedding_model = embedding_model
         embedding_len = len(
             self.__embedding_model.generate_embeddings("embedding length test")
         )
