@@ -14,4 +14,5 @@ if __name__ == "__main__":
     screen = Image.open("home_screen.png")
     load_dotenv()
     screen_analyzer = ScreenAnalyzer(getenv("GEMINI_API_KEY"))
-    best_positions = screen_analyzer.analyze_image_coordinates(screen, "home_screen.pn", "Search Bar")
+    print(screen_analyzer.analyze_image_details(screen))
+    #best_positions = screen_analyzer.analyze_image_coordinates(screen, "home_screen.pn", "Mozilla Thunderbird Icon")

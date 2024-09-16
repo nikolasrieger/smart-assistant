@@ -93,12 +93,34 @@ class ClassifyInputTemplate(PromptTemplate):
     def generation_config(self):
         return Model.set_generation_config(response_mime_type ="text/x.enum", response_schema=TaskChoices)
     
-class CoordinatesTemplate(PromptTemplate):
+class ImageCoordinatesTemplate(PromptTemplate):
     def __init__(self, object_name: str):
         super().__init__()
         prompt = """Return the bounding box around the {} in exact this format: [y_min, x_min, y_max, x_max]. If the object is not present return an empty list.
         """.format(object_name)
         self._set_prompt(prompt)
+    
+class ImageDetailsTemplate(PromptTemplate):
+    def __init__(self):
+        super().__init__()
+        prompt = """Analyze the following image and return a destription of the image with as many details as possible."""
+        self._set_prompt(prompt)
 
-    def generation_config(self):
-        return Model.set_generation_config()
+class ImageTODOSTemplate(PromptTemplate):
+    def __init__(self):
+        super().__init__()
+        prompt = """Analyze the following image and return a list of tasks you need to do. 
+        Possible Tasks could be: 
+        - If there is a form displayed, fill out the form.
+        - If there is some message, answer it or react accordingly.
+        - If there is some popup, close it or react accordingly.
+        If there are no tasks to do, return an empty list."""
+        self._set_prompt(prompt)
+
+class ImageTaskDoneTemplate(PromptTemplate):
+    def __init__(self, task: str):
+        super().__init__()
+        prompt = """Imagine you are a IT-specialist. You get following task from your boss: {}. Analyze with the screenshot provided if the
+        task is done or not. Return 'Done' or 'Not-Done'.
+        """.format(task)
+        self._set_prompt(prompt)

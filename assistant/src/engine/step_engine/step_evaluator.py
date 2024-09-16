@@ -15,6 +15,10 @@ class Tasks(Enum):
     SKIP_STEP = "Skip-Step"
     QUESTION = "Question"
 
+class Task():
+    def __init__(self, task: Tasks, task_info: dict):
+        self.task = task
+        self.task_info = task_info
 
 class StepEvaluator():
     def __init__(self, api_key: str):

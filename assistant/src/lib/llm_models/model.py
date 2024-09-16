@@ -10,10 +10,8 @@ class Model():
         res = self.__model.generate_content(prompt, generation_config=generation_config)
         return res.text    
     
-    def generate_with_image(self, prompt: str, image_name: str, generation_config: GenerationConfig):
-        image = upload_file(image_name)
+    def generate_with_image(self, prompt: str, image: Image, generation_config: GenerationConfig):
         res = self.__model.generate_content([image, prompt], generation_config=generation_config)
-        image.delete()
         return res.text
         
     def set_generation_config(candidate_count=None, stop_sequences=None, max_output_tokens=None, temperature=None,
