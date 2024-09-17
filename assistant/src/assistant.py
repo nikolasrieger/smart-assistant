@@ -17,6 +17,7 @@ from engine.action_engine.actions import (
 )
 from engine.vision_engine.screen_analyzer import ScreenAnalyzer
 from atexit import register
+from time import sleep, time
 
 DO_NOT_CHECK = [
     Tasks.CANCELTASK,
@@ -26,8 +27,11 @@ DO_NOT_CHECK = [
     Tasks.QUESTION,
 ]
 
+TIME_DELTA = 2
+
 # TODO: Add speech support
 # TODO: maybe something with Screen Delta?
+# TODO: fix: everytime None return by a Model, catch that error
 
 
 class Assistant:
@@ -43,8 +47,11 @@ class Assistant:
     def do_task(self, task: str):
         self.__step_retriever.new_task(task)
         counter = 0
+        status = "Done"
         while counter < 3:
-            step = self.__step_retriever.retrieve_step()
+            actual_time = time()
+            if status == "Done":
+                step = self.__step_retriever.retrieve_step()
             task_type = Tasks.from_string(step["step_name"])
             self.__print_task(step)
             if task_type == Tasks.LEFTCLICK:
@@ -70,7 +77,9 @@ class Assistant:
                     )
                     if pos == (None, None):
                         task_type = Tasks.QUESTION
+                        status = "Not-Done"
                     else:
+                        status = "Done"
                         locate(pos)
                         press_key(text)
             elif task_type == Tasks.LOCATE:
@@ -80,7 +89,9 @@ class Assistant:
                 print(pos)
                 if pos == (None, None):
                     task_type = Tasks.QUESTION
+                    status = "Not-Done"
                 else:
+                    status = "Done"
                     locate(pos)
             elif task_type == Tasks.CANCELTASK:
                 break
@@ -90,8 +101,13 @@ class Assistant:
                 continue
             elif task_type == Tasks.QUESTION:
                 pass  # TODO: interact with user
+            time_delta = time() - actual_time
+            if time_delta < TIME_DELTA:
+                sleep(TIME_DELTA - time_delta)
             if task_type not in DO_NOT_CHECK:
-                pass  # TODO: Check if task completed
+                status = self.__screen_analyzer.analzye_image_task(step["description"])
+                print(status)
+                # TODO: Maybe adapt task type based on status
             counter += 1
 
     def __print_task(self, task: dict):

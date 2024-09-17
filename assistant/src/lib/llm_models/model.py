@@ -1,4 +1,5 @@
 from google.generativeai import configure, GenerativeModel, GenerationConfig, list_files
+from google.api_core.exceptions import InternalServerError, ServiceUnavailable
 from PIL import Image
 
 
@@ -12,15 +13,31 @@ class Model:
             f.delete()
 
     def generate(self, prompt: str, generation_config: GenerationConfig):
-        res = self.__model.generate_content(prompt, generation_config=generation_config)
+        try:
+            res = self.__model.generate_content(
+                prompt, generation_config=generation_config
+            )
+        except InternalServerError:
+            print("[ERROR]:  Internal Server Error", prompt)
+            return
+        except ServiceUnavailable:
+            print("[ERROR]:  Service Unavailable")
+            return
         return res.text
 
     def generate_with_image(
         self, prompt: str, image: Image, generation_config: GenerationConfig
     ):
-        res = self.__model.generate_content(
-            [image, prompt], generation_config=generation_config
-        )
+        try:
+            res = self.__model.generate_content(
+                [image, prompt], generation_config=generation_config
+            )
+        except InternalServerError:
+            print("[ERROR]:  Internal Server Error", prompt)
+            return
+        except ServiceUnavailable:
+            print("[ERROR]:  Service Unavailable")
+            return
         return res.text
 
     def set_generation_config(

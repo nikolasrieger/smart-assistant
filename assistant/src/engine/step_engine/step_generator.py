@@ -39,12 +39,19 @@ class StepGenerator:
         step = self.__step_list[self.__index]
         description = step["step_name"]
         task_list = loads(self.__get_tasks(description))
-        self.__evaluator.evaluate_next_step(
+        result = self.__evaluator.evaluate_next_step(
             task_list, self.__task, additional_info, screen_details
         )
+        result = loads(result)
         self.__index += 1
-        self.__evaluator.add_finished_step(task_list)
-        return task_list
+        self.__evaluator.add_finished_step(result)
+        return result
+
+    def next_step_new(self, screen_details: str, additional_info: str = ""):
+        result = self.__evaluator.evaluate_next_step(
+            "", self.__task, additional_info, screen_details
+        )
+        return result
 
     def __get_tasks(self, step_description: str):
         template = ExtractTaskTemplate(step_description, Tasks)
@@ -78,7 +85,12 @@ class StepRetriever:
         if len(self.__queue) == 0:
             additional_info = self.__input_handler.get_input()
             screen_details = self.__input_handler.get_screen_details()
-            self.__queue += self.__step_generator.next_step(
-                screen_details, additional_info
-            )
+            try:
+                self.__queue += self.__step_generator.next_step(
+                    screen_details, additional_info
+                )
+            except IndexError:
+                self.__queue += self.__step_generator.next_step_new(
+                    screen_details, additional_info
+                )
         return self.__queue.pop(0)

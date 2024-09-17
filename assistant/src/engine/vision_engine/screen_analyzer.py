@@ -7,7 +7,8 @@ from lib.llm_models.prompts import (
     ImageCoordinatesTemplate,
     ImageDetailsTemplate,
     ImageTODOSTemplate,
-    ImageTaskDoneTemplate,
+    TaskDoneScreenTemplate,
+    TaskDoneTemplate,
 )
 from json import loads
 
@@ -25,12 +26,13 @@ class ScreenAnalyzer:
             template.prompt(), image, template.generation_config()
         )
         coordinates = loads(result)
-        try: 
+        try:
             x1, y1 = self.__convert_pos((coordinates[1], coordinates[0]), image.size)
             x2, y2 = self.__convert_pos((coordinates[3], coordinates[2]), image.size)
             self.__save_image(image, ((x1, y1), (x2, y2)))
             return (self.__mid_pos(x1, x2), self.__mid_pos(y1, y2))
-        except IndexError: return (None, None)
+        except IndexError:
+            return (None, None)
 
     def analyze_image_details(self, image: Image = None):
         if image is None:
@@ -53,9 +55,13 @@ class ScreenAnalyzer:
     def analzye_image_task(self, task: str, image: Image = None):
         if image is None:
             image = self.__screen_handler.get_active_screen()
-        template = ImageTaskDoneTemplate(task)
-        result = self.__model.generate_with_image(
-            template.prompt(), image, template.generation_config()
+        template = TaskDoneScreenTemplate(task)
+        result_prediction = self.__model.generate(template.prompt(), template.generation_config())
+        result = self.analyze_image_details(image)
+        print(result, result_prediction)
+        template = TaskDoneTemplate(task, result, result_prediction)
+        result = self.__model.generate(
+            template.prompt(), template.generation_config()
         )
         return result
 

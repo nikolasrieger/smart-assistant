@@ -280,7 +280,7 @@ class EvaluateStepTemplate(PromptTemplate):
         else:
             info = ""
         prompt = """Imagine you are a IT-specialist. You get following task from your boss: {}. {} Your OS is {}. 
-        This is what you see on your screen: {}. Perform only the most fitting and logical next step. Do not make it more complicated than it is.
+        This is what you see on your screen: {}. Do not make it more complicated than it is, just as simple as possible
         Here is a list of steps you already performed: {}. If the task from your boss is done, return 'FINISHEDTASK'.
         Evaluate the next step: {} you have to perform, if it is not done and makes sense, just return it, else return a fitting next step.
         You have a list of possible tasks you can choose from: Task={}. 
@@ -349,12 +349,22 @@ class ImageTODOSTemplate(PromptTemplate):
         self._set_prompt(prompt)
 
 
-class ImageTaskDoneTemplate(PromptTemplate):
+class TaskDoneScreenTemplate(PromptTemplate):
     def __init__(self, task: str):
         super().__init__()
-        prompt = """Imagine you are a IT-specialist. You get following task from your boss: {}. Analyze with the screenshot provided if the
-        task is done or not.
+        prompt = """Imagine you are a IT-specialist. You get following task from your boss: {}. 
+        Ask yourself, what would the resulting screen look like if the task is done? Do not make it more complicated than it is.
         """.format(task)
+        self._set_prompt(prompt)
+
+
+class TaskDoneTemplate(PromptTemplate):
+    def __init__(self, task: str, screen_details: str, screen_details_predicted: str):
+        super().__init__()
+        prompt = """Imagine you are a IT-specialist. You get following task from your boss: {}. 
+        This is what you see: {}. This is what you would probably see: {}.
+        It must not be the exact same thing, but it should have some similarities.
+        """.format(task, screen_details, screen_details_predicted)
         self._set_prompt(prompt)
 
     def generation_config(self):
