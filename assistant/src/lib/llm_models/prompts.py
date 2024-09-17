@@ -236,7 +236,6 @@ class GenerateStepsTemplate(PromptTemplate):
             Step = {{"step_name": str}}
         Return a 'list[Step]'. If you don't know which steps to perform or you can't perform it on a comptuer, 
         return an empty JSON.""".format(action_text, OS, context)
-        print(context)
         self._set_prompt(prompt)
 
     def generation_config(self):
@@ -282,7 +281,7 @@ class EvaluateStepTemplate(PromptTemplate):
             info = ""
         prompt = """Imagine you are a IT-specialist. You get following task from your boss: {}. {} Your OS is {}. 
         This is what you see on your screen: {}. Perform only the most fitting and logical next step. Do not make it more complicated than it is.
-        Here is a list of steps you already performed: {}. 
+        Here is a list of steps you already performed: {}. If the task from your boss is done, return 'FINISHEDTASK'.
         Evaluate the next step: {} you have to perform, if it is not done and makes sense, just return it, else return a fitting next step.
         You have a list of possible tasks you can choose from: Task={}. 
         Add a description, where you add details to the chosen task like what to locate, where to click on, etc.

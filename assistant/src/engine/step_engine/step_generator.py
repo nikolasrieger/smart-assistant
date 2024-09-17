@@ -36,8 +36,6 @@ class StepGenerator:
         return self.__step_list, self.__index
 
     def next_step(self, screen_details: str, additional_info: str = ""):
-        if len(self.__step_list) <= self.__index:
-            return None
         step = self.__step_list[self.__index]
         description = step["step_name"]
         task_list = loads(self.__get_tasks(description))

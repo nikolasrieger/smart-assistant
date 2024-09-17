@@ -25,10 +25,12 @@ class ScreenAnalyzer:
             template.prompt(), image, template.generation_config()
         )
         coordinates = loads(result)
-        x1, y1 = self.__convert_pos((coordinates[1], coordinates[0]), image.size)
-        x2, y2 = self.__convert_pos((coordinates[3], coordinates[2]), image.size)
-        self.__save_image(image, ((x1, y1), (x2, y2)))
-        return (self.__mid_pos(x1, x2), self.__mid_pos(y1, y2))
+        try: 
+            x1, y1 = self.__convert_pos((coordinates[1], coordinates[0]), image.size)
+            x2, y2 = self.__convert_pos((coordinates[3], coordinates[2]), image.size)
+            self.__save_image(image, ((x1, y1), (x2, y2)))
+            return (self.__mid_pos(x1, x2), self.__mid_pos(y1, y2))
+        except IndexError: return (None, None)
 
     def analyze_image_details(self, image: Image = None):
         if image is None:

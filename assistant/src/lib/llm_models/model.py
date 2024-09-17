@@ -1,4 +1,4 @@
-from google.generativeai import configure, GenerativeModel, GenerationConfig
+from google.generativeai import configure, GenerativeModel, GenerationConfig, list_files
 from PIL import Image
 
 
@@ -6,6 +6,10 @@ class Model:
     def __init__(self, api_key: str):
         configure(api_key=api_key)
         self.__model = GenerativeModel("gemini-1.5-flash")
+
+    def delete_files(self):
+        for f in list_files():
+            f.delete()
 
     def generate(self, prompt: str, generation_config: GenerationConfig):
         res = self.__model.generate_content(prompt, generation_config=generation_config)
