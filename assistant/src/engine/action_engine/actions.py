@@ -1,4 +1,4 @@
-from pyautogui import moveTo, click, scroll, dragTo, press, write
+from pyautogui import moveTo, click, scroll, dragTo, press, write, hold
 
 
 def locate(pos: tuple[int, int]):
@@ -29,8 +29,23 @@ def drag(pos: tuple[int, int]):
     dragTo(pos[0], pos[1])
 
 
-def press_key(key: str, write_text: bool = True):
-    if write_text:
-        write(key)
+def press_key(text: str = "", keys: list = []):
+    if text != "":
+        write(text)
     else:
-        press(key)
+        if len(keys) == 1:
+            press(keys[0])
+        elif len(keys) == 2:
+            with hold(keys[0]):
+                press(keys[1])
+        else:
+            with hold(keys[0]):
+                hold_key(keys[1], keys[2:])
+
+
+def hold_key(key: str, keys: list):
+    with hold(key):
+        if len(keys) == 1:
+            press(keys[0])
+        else:
+            hold_key(keys[0], keys[1:])

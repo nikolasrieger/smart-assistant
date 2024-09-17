@@ -25,7 +25,6 @@ class ScreenAnalyzer:
             template.prompt(), image, template.generation_config()
         )
         coordinates = loads(result)
-        print(coordinates)
         x1, y1 = self.__convert_pos((coordinates[1], coordinates[0]), image.size)
         x2, y2 = self.__convert_pos((coordinates[3], coordinates[2]), image.size)
         self.__save_image(image, ((x1, y1), (x2, y2)))

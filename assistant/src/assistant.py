@@ -15,6 +15,9 @@ from engine.action_engine.actions import (
     scroll_down,
     press_key,
 )
+from engine.vision_engine.screen_analyzer import ScreenAnalyzer
+
+DO_NOT_CHECK = [Tasks.CANCELTASK, Tasks.FINISHEDTASK, Tasks.SKIPSTEP, Tasks.LOCATE, Tasks.QUESTION]
 
 # TODO: Add speech support
 # TODO: maybe something with Screen Delta?
@@ -22,18 +25,19 @@ from engine.action_engine.actions import (
 
 class Assistant:
     def __init__(self, model: Model, embedding_model: EmbeddingModel):
-        self.__model = model
-        self.__embedding_model = embedding_model
         self.__input_handler = InputHandler(model)
+        self.__screen_analyzer = ScreenAnalyzer(model)
         self.__step_retriever = StepRetriever(
             model, embedding_model, self.__input_handler
         )
 
     def do_task(self, task: str):
         self.__step_retriever.new_task(task)
-        while True:
+        counter = 0
+        while counter < 2:
             step = self.__step_retriever.retrieve_step()
             task_type = Tasks.from_string(step["step_name"])
+            print(step)
             if task_type == Tasks.LEFTCLICK:
                 click_left()
             elif task_type == Tasks.RIGHTCLICK:
@@ -47,9 +51,15 @@ class Assistant:
             elif task_type == Tasks.SCROLLUP:
                 scroll_up() # TODO: add amount
             elif task_type == Tasks.PRESSKEY:
-                pass # TODO: extract key
+                try:
+                    keys = step["keys"]
+                    press_key(keys)
+                except KeyError: 
+                    text = step["text"]
+                    press_key(text)
             elif task_type == Tasks.LOCATE:
-                pass # TODO: extract position
+                pos = self.__screen_analyzer.analyze_image_coordinates(step["description"])
+                locate(pos)
             elif task_type == Tasks.CANCELTASK:
                 break
             elif task_type == Tasks.FINISHEDTASK:
@@ -58,7 +68,9 @@ class Assistant:
                 continue
             elif task_type == Tasks.QUESTION:
                 pass # TODO: interact with user
-            break
+            if task_type not in DO_NOT_CHECK:
+                pass # TODO: Check if task completed
+            counter += 1
 
 
 if __name__ == "__main__":
