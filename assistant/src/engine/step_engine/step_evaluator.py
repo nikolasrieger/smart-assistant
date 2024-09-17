@@ -4,18 +4,22 @@ from enum import Enum
 
 
 class Tasks(Enum):
-    LEFTCLICK = "Left-Click"
-    RIGHTCLICK = "Right-Click"
-    DRAG = "Drag"
-    DOUBLECLICK = "Double-Click"
-    SCROLLDOWN = "Scroll-Down"
-    SCROLLUP = "Scroll-Up"
-    PRESSKEY = "Press-Key"
-    LOCATE = "Locate"
-    CANCEL_TASK = "Cancel-Task"
-    FINISHED_TASK = "Finished-Task"
-    SKIP_STEP = "Skip-Step"
-    QUESTION = "Question"
+    LEFTCLICK = "LEFTCLICK"
+    RIGHTCLICK = "RIGHTCLICK"
+    DRAG = "DRAG"
+    DOUBLECLICK = "DOUBLECLICK"
+    SCROLLDOWN = "SCROLLDOWN"
+    SCROLLUP = "SCROLLUP"
+    PRESSKEY = "PRESSKEY"
+    LOCATE = "LOCATE"
+    CANCELTASK = "CANCELTASK"
+    FINISHEDTASK = "FINISHEDTASK"
+    SKIPSTEP = "SKIPSTEP"
+    QUESTION = "QUESTION"
+
+    @classmethod
+    def from_string(cls, string: str):
+        return cls(string)
 
 
 class Task:
@@ -33,10 +37,19 @@ class StepEvaluator:
         self.__steps_done.append(step)
 
     def evaluate_next_step(
-        self, next_step: dict, action_text: str, screen_details: str, additional_info: str = ""
+        self,
+        next_step: dict,
+        action_text: str,
+        screen_details: str,
+        additional_info: str = "",
     ):
         template = EvaluateStepTemplate(
-            action_text, self.__steps_done, next_step, Tasks, additional_info, screen_details
+            action_text,
+            self.__steps_done,
+            next_step,
+            Tasks,
+            additional_info,
+            screen_details,
         )
         result = self.__model.generate(template.prompt(), template.generation_config())
         return result
