@@ -5,9 +5,8 @@ from lib.llm_models.embeddings import EmbeddingModel
 from engine.step_engine.input_handler import InputHandler
 from engine.step_engine.step_generator import StepRetriever
 
-# TODO: Try running on windows
 # TODO: Add speech support
-# TODO: Actually do the tasks (Coordinates, Task Done, TODOS)
+# TODO: Actually do the tasks (Task Done, TODOS) -> press key/ writing
 # TODO: maybe something with Screen Delta?
 
 if __name__ == "__main__":

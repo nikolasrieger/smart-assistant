@@ -6,9 +6,10 @@ from enum import Enum
 class Tasks(Enum):
     LEFTCLICK = "Left-Click"
     RIGHTCLICK = "Right-Click"
-    CLICKANDHOLD = "Click-and-Hold"
+    DRAG = "Drag"
     DOUBLECLICK = "Double-Click"
-    SCROLL = "Scroll"
+    SCROLLDOWN = "Scroll-Down"
+    SCROLLUP = "Scroll-Up"
     PRESSKEY = "Press-Key"
     LOCATE = "Locate"
     CANCEL_TASK = "Cancel-Task"
