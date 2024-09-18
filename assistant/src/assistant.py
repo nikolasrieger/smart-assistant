@@ -16,7 +16,9 @@ from engine.action_engine.actions import (
     press_key,
 )
 from engine.vision_engine.screen_analyzer import ScreenAnalyzer
+from lib.llm_models.prompts import ImproveTaskTemplate
 from atexit import register
+from json import loads
 from time import sleep, time
 
 DO_NOT_CHECK = [
@@ -27,7 +29,7 @@ DO_NOT_CHECK = [
     Tasks.QUESTION,
 ]
 
-TIME_DELTA = 1.5
+TIME_DELTA = 1
 
 # TODO: Add speech support
 # TODO: maybe something with Screen Delta?
@@ -120,7 +122,13 @@ class Assistant:
                     )
                 else:
                     status = "Not-Done"
-                # TODO: Adapt task type based on status
+                if status == "Not-Done":
+                    screen = self.__screen_analyzer.analyze_image_details()
+                    prompt = ImproveTaskTemplate(task, screen, step, Tasks)
+                    result = self.__model.generate(
+                        prompt.prompt(), prompt.generation_config()
+                    )
+                    step = loads(result)
             self.__print_status(status)
             counter += 1
 

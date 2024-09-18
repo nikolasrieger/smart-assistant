@@ -374,3 +374,31 @@ class DragPositionTemplate(PromptTemplate):
             description
         )
         self._set_prompt(prompt)
+
+
+class ImproveTaskTemplate(PromptTemplate):
+    def __init__(self, action_text: str, screen_details: str, step: dict, tasks: Enum):
+        super().__init__()
+        prompt = """Imagine you are a smart computer assistant helping a user to perform tasks. This is the task you got from the user: {}.
+        You assessed to do this step: {}. Unfortunately, this task is either in the wrong format or did not work as expected
+        This is what you see on your screen: {}. Do not make it more complicated than it is, just as simple as possible.
+        Improve the task in a way that it can be executed successfully. Return the improved task in the same format as the original task.
+        You have a list of possible tasks you can choose from: Task={}. Choose only from the list! Do not add steps which already are done.
+        Add a description, where you add details to the chosen task like what to locate, where to click on, etc.
+        Use this JSON schema:
+            Step = {{"step_name": Task, "description": str, "keys": str, "text": str}}
+        If you chose PRESSKEY as step_name, then you have to add the a list of keys you pressed in the 'keys' field. (possible keys are: {}).
+        If the list contains more than one key, be aware, that the all keys will be held down until the last key is pressed.
+        If you chose TYPE and want to write a text, add the text to the 'text' field.
+        Do not fill the 'text' and 'keys' field at the same time.
+        Return a 'Step'. If you don't know which steps to perform return an empty JSON.""".format(
+            action_text,
+            step,
+            screen_details,
+            list(tasks),
+            KEYS,
+        )
+        self._set_prompt(prompt)
+
+    def generation_config(self):
+        return Model.set_generation_config(response_mime_type="application/json")
