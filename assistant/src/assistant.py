@@ -27,7 +27,7 @@ DO_NOT_CHECK = [
     Tasks.QUESTION,
 ]
 
-TIME_DELTA = 2
+TIME_DELTA = 1.5
 
 # TODO: Add speech support
 # TODO: maybe something with Screen Delta?
@@ -53,7 +53,6 @@ class Assistant:
             if status == "Done":
                 step = self.__step_retriever.retrieve_step()
             task_type = Tasks.from_string(step["step_name"])
-            self.__print_task(step)
             if task_type == Tasks.LEFTCLICK:
                 click_left()
             elif task_type == Tasks.RIGHTCLICK:
@@ -106,12 +105,12 @@ class Assistant:
                 sleep(TIME_DELTA - time_delta)
             if task_type not in DO_NOT_CHECK:
                 status = self.__screen_analyzer.analzye_image_task(step["description"])
-                print(status)
                 # TODO: Maybe adapt task type based on status
+            self.__print_task(step, status)
             counter += 1
 
-    def __print_task(self, task: dict):
-        print("[INFO]:  ", task["step_name"], " - ", task["description"])
+    def __print_task(self, task: dict, status: str):
+        print("[INFO]:  ", task["step_name"], " - ", task["description"], "  -  ", status)
 
     def cleanup(self):
         self.__model.delete_files()

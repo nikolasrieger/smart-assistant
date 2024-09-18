@@ -38,7 +38,7 @@ class StepEvaluator:
 
     def evaluate_next_step(
         self,
-        next_step: dict,
+        next_steps: list,
         action_text: str,
         screen_details: str,
         additional_info: str = "",
@@ -46,7 +46,7 @@ class StepEvaluator:
         template = EvaluateStepTemplate(
             action_text,
             self.__steps_done,
-            next_step,
+            next_steps,
             Tasks,
             additional_info,
             screen_details,

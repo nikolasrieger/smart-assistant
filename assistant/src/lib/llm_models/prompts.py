@@ -226,41 +226,30 @@ class PromptTemplate:
         return Model.set_generation_config()
 
 
-class GenerateStepsTemplate(PromptTemplate):
-    def __init__(self, action_text: str, context: str = ""):
+# TODO: Delete old and incorporate new tasks
+# TODO: Evaluate all future tasks based on the previous tasks
+
+class GenerateTasksTemplate(PromptTemplate):
+    def __init__(self, action_text: str, tasks: Enum, context: str = ""):
         super().__init__()
-        prompt = """Imagine you are a IT-specialist. You get following computer-related task from your boss: {}. Your OS is {}.
-        Here is some context to help you from a quick internet search: {}. If the internet search makes everything more complicated, do not use that context.
-        Perform only the most fitting and logical next step. Do not make it more complicated than it is.
-        Break down the task into smaller actions based on your knowledge. Use this JSON schema:
-            Step = {{"step_name": str}}
-        Return a 'list[Step]'. If you don't know which steps to perform or you can't perform it on a comptuer, 
-        return an empty JSON.""".format(action_text, OS, context)
-        self._set_prompt(prompt)
-
-    def generation_config(self):
-        return Model.set_generation_config(response_mime_type="application/json")
-
-
-class ExtractTaskTemplate(PromptTemplate):
-    def __init__(self, action_text: str, tasks: Enum):
-        super().__init__()
-        prompt = """Imagine you are a IT-specialist. You get following task: {}. Your OS is {}.
-        Break down the task into smaller tasks based on your knowledge. Perform only the most fitting and logical next step. Do not make it more complicated than it is.
-        You have a list of possible tasks you can choose from: Task={}. Return one or more tasks from the list, you have to perform in the correct order.
-        Add a description, where you add details to the chosen task like what to locate, where to click on, etc. 
-        Use this JSON schema:
-            Step = {{"step_name": Task, "description": str, "keys": str, "text": str}}
+        prompt = """Imagine you are a smart computer assistant helping a user to perform tasks. 
+        You got the following computer-related task from the user: {}. The OS is {}.
+        Here is some context to help you from a quick internet search: {}. Use it only, if it helps you to perform the task.
+        Perform the task in the most logial and easy way. Do not make it too complicated.
+        Break down the task into smaller actions based on your knowledge. 
+        Following tasks are possible: Task={}.
         If you chose PRESSKEY as step_name, then you have to add the a list of keys you pressed in the 'keys' field. (possible keys are: {}). 
         If the list contains more than one key, be aware, that the all keys will be held down until the last key is pressed.
         If you chose PRESSKEY and want to write a text, add the text to the 'text' field.
-        Return a 'list[Step]'. If you don't know which steps to perform return an empty JSON.
-        """.format(action_text, OS, list(tasks), KEYS)
+        Do not fill the 'text' and 'keys' field at the same time.
+        Use this JSON schema:
+            Step = {{"step_name": Task, "description": str, "keys": str, "text": str}}
+        Return a 'list[Step]'. If you don't know which steps to perform or you can't perform it on a comptuer, 
+        return an empty JSON.""".format(action_text, OS, context, list(tasks), KEYS)
         self._set_prompt(prompt)
 
     def generation_config(self):
         return Model.set_generation_config(response_mime_type="application/json")
-
 
 class EvaluateStepTemplate(PromptTemplate):
     def __init__(
@@ -274,15 +263,16 @@ class EvaluateStepTemplate(PromptTemplate):
     ):
         super().__init__()
         if additional_info != "":
-            info = "You got this additional info from your boss: {}, include it in your evaluation.".format(
+            info = "You got this additional info from the user: {}, include it in your evaluation.".format(
                 additional_info
             )
         else:
             info = ""
-        prompt = """Imagine you are a IT-specialist. You get following task from your boss: {}. {} Your OS is {}. 
-        This is what you see on your screen: {}. Do not make it more complicated than it is, just as simple as possible
-        Here is a list of steps you already performed: {}. If the task from your boss is done, return 'FINISHEDTASK'.
-        Evaluate the next step: {} you have to perform, if it is not done and makes sense, just return it, else return a fitting next step.
+        prompt = """Imagine you are a smart computer assistant helping a user to perform tasks. 
+        You got the following computer-related task from the user: {}. {} The OS is {}.
+        This is what you see on your screen: {}. Do not make it more complicated than it is, just as simple as possible.
+        Here is a list of steps you already performed: {}. If the task from the user is done, return 'FINISHEDTASK'.
+        Evaluate the next steps: {} you have to perform, based on your knowledge and the previous steps. Return the old or changed new steps.
         You have a list of possible tasks you can choose from: Task={}. 
         Add a description, where you add details to the chosen task like what to locate, where to click on, etc.
         Use this JSON schema:
@@ -290,8 +280,10 @@ class EvaluateStepTemplate(PromptTemplate):
         If you chose PRESSKEY as step_name, then you have to add the a list of keys you pressed in the 'keys' field. (possible keys are: {}).
         If the list contains more than one key, be aware, that the all keys will be held down until the last key is pressed.
         If you chose PRESSKEY and want to write a text, add the text to the 'text' field.
+        Do not fill the 'text' and 'keys' field at the same time.
         Return a 'list[Step]'. If you don't know which steps to perform return an empty JSON.
-        If the there is any additional information to cancel the task, then include 'Cancel-task' as only step.""".format(
+        The last step should be 'FINISHEDTASK'.
+        If the there is any additional information to cancel the task, then include 'CANCELTASK' as only step.""".format(
             action_text,
             info,
             OS,
@@ -352,8 +344,8 @@ class ImageTODOSTemplate(PromptTemplate):
 class TaskDoneScreenTemplate(PromptTemplate):
     def __init__(self, task: str):
         super().__init__()
-        prompt = """Imagine you are a IT-specialist. You get following task from your boss: {}. 
-        Ask yourself, what would the resulting screen look like if the task is done? Do not make it more complicated than it is.
+        prompt = """Imagine you are a smart computer assistant helping a user to perform tasks. You get following task from the user: {}. 
+        How would the resulting screen look like if the task is done? Do not make it more complicated or philosophical than it is.
         """.format(task)
         self._set_prompt(prompt)
 

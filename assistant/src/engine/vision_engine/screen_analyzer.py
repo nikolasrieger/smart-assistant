@@ -58,7 +58,6 @@ class ScreenAnalyzer:
         template = TaskDoneScreenTemplate(task)
         result_prediction = self.__model.generate(template.prompt(), template.generation_config())
         result = self.analyze_image_details(image)
-        print(result, result_prediction)
         template = TaskDoneTemplate(task, result, result_prediction)
         result = self.__model.generate(
             template.prompt(), template.generation_config()

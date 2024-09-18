@@ -1,12 +1,9 @@
 from lib.llm_models.model import Model
-from lib.llm_models.prompts import (
-    GenerateStepsTemplate,
-    ExtractTaskTemplate,
-)
+from lib.llm_models.prompts import GenerateTasksTemplate
 from lib.web_search.search_engine import SearchEngine
 from engine.step_engine.context_generator import ContextGenerator
 from lib.llm_models.embeddings import EmbeddingModel
-from engine.step_engine.step_evaluator import StepEvaluator, Tasks
+from engine.step_engine.step_evaluator import StepEvaluator
 from engine.step_engine.input_handler import InputHandler
 from json import loads
 
@@ -25,7 +22,7 @@ class StepGenerator:
         context_text = ""
         for webpage in context:
             context_text += SearchEngine.get_text_from_url(webpage.url) + "\n"
-        template = GenerateStepsTemplate(action_text, context_text)
+        template = GenerateTasksTemplate(action_text, context_text)
         steps = self.__model.generate(template.prompt(), template.generation_config())
         if len(loads(steps)) == 0:
             raise IndexError("No steps generated")
@@ -36,27 +33,13 @@ class StepGenerator:
         return self.__step_list, self.__index
 
     def next_step(self, screen_details: str, additional_info: str = ""):
-        step = self.__step_list[self.__index]
-        description = step["step_name"]
-        task_list = loads(self.__get_tasks(description))
         result = self.__evaluator.evaluate_next_step(
-            task_list, self.__task, additional_info, screen_details
+            self.__step_list[self.__index:], self.__task, additional_info, screen_details
         )
-        result = loads(result)
-        self.__index += 1
-        self.__evaluator.add_finished_step(result)
-        return result
-
-    def next_step_new(self, screen_details: str, additional_info: str = ""):
-        result = self.__evaluator.evaluate_next_step(
-            "", self.__task, additional_info, screen_details
-        )
-        return result
-
-    def __get_tasks(self, step_description: str):
-        template = ExtractTaskTemplate(step_description, Tasks)
-        tasks = self.__model.generate(template.prompt(), template.generation_config())
-        return tasks
+        self.__step_list = loads(result)
+        self.__index = 1
+        self.__evaluator.add_finished_step(self.__step_list[0])
+        return self.__step_list[0]
 
 
 class StepRetriever:
@@ -74,7 +57,7 @@ class StepRetriever:
             self.__model, self.__embedding_model, action_text
         )
         screen_details = self.__input_handler.get_screen_details()
-        self.__queue = self.__step_generator.next_step(screen_details)
+        self.__queue = [self.__step_generator.next_step(screen_details)]
 
     def retrieve_step(self):
         if self.__step_generator is None:
@@ -85,12 +68,7 @@ class StepRetriever:
         if len(self.__queue) == 0:
             additional_info = self.__input_handler.get_input()
             screen_details = self.__input_handler.get_screen_details()
-            try:
-                self.__queue += self.__step_generator.next_step(
-                    screen_details, additional_info
-                )
-            except IndexError:
-                self.__queue += self.__step_generator.next_step_new(
-                    screen_details, additional_info
-                )
+            self.__queue += [self.__step_generator.next_step(
+                screen_details, additional_info
+            )]
         return self.__queue.pop(0)
