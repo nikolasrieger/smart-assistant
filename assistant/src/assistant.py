@@ -31,7 +31,6 @@ TIME_DELTA = 1.5
 
 # TODO: Add speech support
 # TODO: maybe something with Screen Delta?
-# TODO: fix: everytime None return by a Model, catch that error
 
 
 class Assistant:
@@ -53,6 +52,7 @@ class Assistant:
             if status == "Done":
                 step = self.__step_retriever.retrieve_step()
             task_type = Tasks.from_string(step["step_name"])
+            print(step)
             if task_type == Tasks.LEFTCLICK:
                 click_left()
             elif task_type == Tasks.RIGHTCLICK:
@@ -85,7 +85,6 @@ class Assistant:
                 pos = self.__screen_analyzer.analyze_image_coordinates(
                     step["description"]
                 )
-                print(pos)
                 if pos == (None, None):
                     task_type = Tasks.QUESTION
                     status = "Not-Done"
@@ -110,7 +109,9 @@ class Assistant:
             counter += 1
 
     def __print_task(self, task: dict, status: str):
-        print("[INFO]:  ", task["step_name"], " - ", task["description"], "  -  ", status)
+        print(
+            "[INFO]:  ", task["step_name"], " - ", task["description"], "  -  ", status
+        )
 
     def cleanup(self):
         self.__model.delete_files()

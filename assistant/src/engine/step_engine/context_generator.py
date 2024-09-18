@@ -7,9 +7,14 @@ from faiss import IndexFlatL2
 class ContextIndex:
     def __init__(self, embedding_model: EmbeddingModel):
         self.__embedding_model = embedding_model
-        embedding_len = len(
-            self.__embedding_model.generate_embeddings("embedding length test")
+        test_embedding = self.__embedding_model.generate_embeddings(
+            "embedding length test"
         )
+        while test_embedding is None:
+            test_embedding = self.__embedding_model.generate_embeddings(
+                "embedding length test"
+            )
+        embedding_len = len(test_embedding)
         self.__index = IndexFlatL2(embedding_len)
         self.__data = []
 
@@ -18,12 +23,18 @@ class ContextIndex:
             embedding = self.__embedding_model.generate_embeddings(
                 text.url + " " + text.info
             )
+            while embedding is None:
+                embedding = self.__embedding_model.generate_embeddings(
+                    text.url + " " + text.info
+                )
             embedding_array = array([embedding], dtype=float32)
             self.__index.add(embedding_array)
             self.__data.append(text)
 
     def search(self, search_text: str, top_k: int = 2):
         embedding = self.__embedding_model.generate_embeddings(search_text)
+        while embedding is None:
+            embedding = self.__embedding_model.generate_embeddings(search_text)
         embedding_array = array([embedding], dtype=float32)
         _, indices = self.__index.search(embedding_array, top_k)
         results = [self.__data[idx] for idx in indices[0]]

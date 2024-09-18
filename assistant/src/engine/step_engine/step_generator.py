@@ -24,8 +24,9 @@ class StepGenerator:
             context_text += SearchEngine.get_text_from_url(webpage.url) + "\n"
         template = GenerateTasksTemplate(action_text, context_text)
         steps = self.__model.generate(template.prompt(), template.generation_config())
-        if len(loads(steps)) == 0:
-            raise IndexError("No steps generated")
+        print(steps)
+        if len(loads(steps)) == 0 or steps is None:
+            return "[{'step_name': 'SKIPSTEP'}]"
         self.__index = 0
         return steps
 
@@ -34,8 +35,13 @@ class StepGenerator:
 
     def next_step(self, screen_details: str, additional_info: str = ""):
         result = self.__evaluator.evaluate_next_step(
-            self.__step_list[self.__index:], self.__task, additional_info, screen_details
+            self.__step_list[self.__index :],
+            self.__task,
+            additional_info,
+            screen_details,
         )
+        if result is None:
+            return {"step_name": "SKIPSTEP"}
         self.__step_list = loads(result)
         self.__index = 1
         self.__evaluator.add_finished_step(self.__step_list[0])
@@ -57,7 +63,10 @@ class StepRetriever:
             self.__model, self.__embedding_model, action_text
         )
         screen_details = self.__input_handler.get_screen_details()
-        self.__queue = [self.__step_generator.next_step(screen_details)]
+        if screen_details is None:
+            self.__queue = [{"step_name": "SKIPSTEP"}]
+        else:
+            self.__queue = [self.__step_generator.next_step(screen_details)]
 
     def retrieve_step(self):
         if self.__step_generator is None:
@@ -68,7 +77,9 @@ class StepRetriever:
         if len(self.__queue) == 0:
             additional_info = self.__input_handler.get_input()
             screen_details = self.__input_handler.get_screen_details()
-            self.__queue += [self.__step_generator.next_step(
-                screen_details, additional_info
-            )]
+            if screen_details is None:
+                return {"step_name": "SKIPSTEP"}
+            self.__queue += [
+                self.__step_generator.next_step(screen_details, additional_info)
+            ]
         return self.__queue.pop(0)
