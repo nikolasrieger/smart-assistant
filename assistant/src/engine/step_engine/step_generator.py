@@ -24,7 +24,6 @@ class StepGenerator:
             context_text += SearchEngine.get_text_from_url(webpage.url) + "\n"
         template = GenerateTasksTemplate(action_text, context_text)
         steps = self.__model.generate(template.prompt(), template.generation_config())
-        print(steps)
         if len(loads(steps)) == 0 or steps is None:
             return "[{'step_name': 'SKIPSTEP'}]"
         self.__index = 0

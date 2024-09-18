@@ -51,8 +51,11 @@ class Assistant:
             actual_time = time()
             if status == "Done":
                 step = self.__step_retriever.retrieve_step()
-            task_type = Tasks.from_string(step["step_name"])
-            print(step)
+            self.__print_task(step)
+            try: 
+                task_type = Tasks.from_string(step["step_name"])
+            except ValueError: 
+                task_type = Tasks.SKIPSTEP # TODO: Handle this better
             if task_type == Tasks.LEFTCLICK:
                 click_left()
             elif task_type == Tasks.RIGHTCLICK:
@@ -66,21 +69,20 @@ class Assistant:
             elif task_type == Tasks.SCROLLUP:
                 scroll_up()  # TODO: add amount
             elif task_type == Tasks.PRESSKEY:
-                try:
-                    keys = step["keys"]
-                    press_key(keys)
-                except KeyError:
-                    text = step["text"]
-                    pos = self.__screen_analyzer.analyze_image_coordinates(
-                        "Locate the input field to type: " + step["description"]
-                    )
-                    if pos == (None, None):
-                        task_type = Tasks.QUESTION
-                        status = "Not-Done"
-                    else:
-                        status = "Done"
-                        locate(pos)
-                        press_key(text)
+                keys = step["keys"]
+                press_key(keys)
+            elif task_type == Tasks.TYPE:
+                text = step["text"]
+                pos = self.__screen_analyzer.analyze_image_coordinates(
+                    "Locate the input field to type: " + step["description"]
+                )
+                if pos == (None, None):
+                    task_type = Tasks.QUESTION
+                    status = "Not-Done"
+                else:
+                    status = "Done"
+                    locate(pos)
+                    press_key(text)
             elif task_type == Tasks.LOCATE:
                 pos = self.__screen_analyzer.analyze_image_coordinates(
                     step["description"]
@@ -105,13 +107,16 @@ class Assistant:
             if task_type not in DO_NOT_CHECK:
                 status = self.__screen_analyzer.analzye_image_task(step["description"])
                 # TODO: Maybe adapt task type based on status
-            self.__print_task(step, status)
+            self.__print_status(status)
             counter += 1
 
-    def __print_task(self, task: dict, status: str):
+    def __print_task(self, task: dict):
         print(
-            "[INFO]:  ", task["step_name"], " - ", task["description"], "  -  ", status
+            "[INFO]:  ", task["step_name"], " - ", task["description"]
         )
+    
+    def __print_status(self, status: str):
+        print("[{}]".format(status))
 
     def cleanup(self):
         self.__model.delete_files()

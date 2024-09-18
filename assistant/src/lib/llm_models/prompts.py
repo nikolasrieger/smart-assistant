@@ -240,7 +240,7 @@ class GenerateTasksTemplate(PromptTemplate):
         Following tasks are possible: Task={}. Choose only from the list!
         If you chose PRESSKEY as step_name, then you have to add the a list of keys you pressed in the 'keys' field. (possible keys are: {}). 
         If the list contains more than one key, be aware, that the all keys will be held down until the last key is pressed.
-        If you chose PRESSKEY and want to write a text, add the text to the 'text' field.
+        If you chose TYPE and want to write a text, add the text to the 'text' field.
         Do not fill the 'text' and 'keys' field at the same time.
         Use this JSON schema:
             Step = {{"step_name": Task, "description": str, "keys": str, "text": str}}
@@ -273,13 +273,13 @@ class EvaluateStepTemplate(PromptTemplate):
         This is what you see on your screen: {}. Do not make it more complicated than it is, just as simple as possible.
         Here is a list of steps you already performed: {}. If the task from the user is done, return 'FINISHEDTASK'.
         Evaluate the next steps: {} you have to perform, based on your knowledge and the previous steps. Return the old or changed new steps.
-        You have a list of possible tasks you can choose from: Task={}. Choose only from the list!
+        You have a list of possible tasks you can choose from: Task={}. Choose only from the list! Do not add steps which already are done.
         Add a description, where you add details to the chosen task like what to locate, where to click on, etc.
         Use this JSON schema:
             Step = {{"step_name": Task, "description": str, "keys": str, "text": str}}
         If you chose PRESSKEY as step_name, then you have to add the a list of keys you pressed in the 'keys' field. (possible keys are: {}).
         If the list contains more than one key, be aware, that the all keys will be held down until the last key is pressed.
-        If you chose PRESSKEY and want to write a text, add the text to the 'text' field.
+        If you chose TYPE and want to write a text, add the text to the 'text' field.
         Do not fill the 'text' and 'keys' field at the same time.
         Return a 'list[Step]'. If you don't know which steps to perform return an empty JSON.
         The last step should be 'FINISHEDTASK'.
@@ -345,8 +345,7 @@ class TaskDoneScreenTemplate(PromptTemplate):
     def __init__(self, task: str):
         super().__init__()
         prompt = """Imagine you are a smart computer assistant helping a user to perform tasks. You get following task from the user: {}. 
-        How would the resulting screen look like if the task is done? Do not make it more complicated or philosophical than it is.
-        Answer as short as possible.
+        How would the resulting screen look like if the task is done? Answer as short and objective as possible. Do not ask questions.
         """.format(task)
         self._set_prompt(prompt)
 
@@ -356,8 +355,8 @@ class TaskDoneTemplate(PromptTemplate):
         super().__init__()
         prompt = """Imagine you are a smart computer assistant helping a user to perform tasks. You get following task from the user: {}. 
         This is what you see: {}. This is what you would probably see, if the task was completed: {}.
-        If you cannot see the task completion or it is possible/ likely, return done.
-        Return not done only if you are sure the task was not completed.
+        If you cannot see the task completion or it is possible that the task was completed, return done.
+        Return not done only if you are a 100 per cent sure the task was not completed.
         """.format(task, screen_details, screen_details_predicted)
         self._set_prompt(prompt)
 
