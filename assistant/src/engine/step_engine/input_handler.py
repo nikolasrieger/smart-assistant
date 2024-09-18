@@ -1,4 +1,4 @@
-from lib.llm_models.prompts import ClassifyInputTemplate
+from lib.llm_models.task_prompts import ClassifyInputTemplate
 from lib.llm_models.model import Model
 from engine.vision_engine.screen_analyzer import ScreenAnalyzer
 

@@ -16,7 +16,7 @@ from engine.action_engine.actions import (
     press_key,
 )
 from engine.vision_engine.screen_analyzer import ScreenAnalyzer
-from lib.llm_models.prompts import ImproveTaskTemplate
+from lib.llm_models.task_prompts import ImproveTaskTemplate
 from atexit import register
 from json import loads
 from time import sleep, time
@@ -49,6 +49,7 @@ class Assistant:
         self.__step_retriever.new_task(task)
         counter = 0
         status = "Done"
+        task = self.__step_retriever.get_task()
         while counter < 3:
             actual_time = time()
             if status == "Done":

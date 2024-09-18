@@ -1,4 +1,4 @@
-from lib.llm_models.prompts import EvaluateStepTemplate
+from lib.llm_models.task_prompts import EvaluateStepTemplate
 from lib.llm_models.model import Model
 from enum import Enum
 

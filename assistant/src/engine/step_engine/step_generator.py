@@ -1,5 +1,5 @@
 from lib.llm_models.model import Model
-from lib.llm_models.prompts import GenerateTasksTemplate
+from lib.llm_models.task_prompts import GenerateTasksTemplate
 from lib.web_search.search_engine import SearchEngine
 from engine.step_engine.context_generator import ContextGenerator
 from lib.llm_models.embeddings import EmbeddingModel
@@ -56,8 +56,10 @@ class StepRetriever:
         self.__model = model
         self.__embedding_model = embedding_model
         self.__input_handler = input_handler
+        self.__task = ""
 
     def new_task(self, action_text: str):
+        self.__task = action_text
         self.__step_generator = StepGenerator(
             self.__model, self.__embedding_model, action_text
         )
@@ -66,6 +68,9 @@ class StepRetriever:
             self.__queue = [{"step_name": "SKIPSTEP"}]
         else:
             self.__queue = [self.__step_generator.next_step(screen_details)]
+
+    def get_task(self):
+        return self.__task
 
     def retrieve_step(self):
         if self.__step_generator is None:

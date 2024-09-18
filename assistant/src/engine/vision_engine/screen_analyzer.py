@@ -3,14 +3,14 @@ from PIL import Image
 from cv2 import rectangle, imwrite
 from numpy import array
 from lib.llm_models.model import Model
-from lib.llm_models.prompts import (
+from lib.llm_models.image_prompts import (
     ImageCoordinatesTemplate,
     ImageDetailsTemplate,
     ImageTODOSTemplate,
     TaskDoneScreenTemplate,
-    TaskDoneTemplate,
     DragPositionTemplate,
 )
+from lib.llm_models.task_prompts import TaskDoneTemplate
 from json import loads
 
 
