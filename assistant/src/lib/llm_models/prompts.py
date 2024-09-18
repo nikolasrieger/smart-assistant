@@ -238,9 +238,10 @@ class GenerateTasksTemplate(PromptTemplate):
         If you chose PRESSKEY as step_name, then you have to add the a list of keys you pressed in the 'keys' field. (possible keys are: {}). 
         If the list contains more than one key, be aware, that the all keys will be held down until the last key is pressed.
         If you chose TYPE and want to write a text, add the text to the 'text' field.
+        If you chose SCROLLUP or SCROLLDOWN, add the amount of scrolling in the 'amount' field (= number of clicks on the scrolling bar).
         Do not fill the 'text' and 'keys' field at the same time.
         Use this JSON schema:
-            Step = {{"step_name": Task, "description": str, "keys": str, "text": str}}
+            Step = {{"step_name": Task, "description": str, "keys": str, "text": str, "amount:" int}}
         Return a 'list[Step]'. If you don't know which steps to perform or you can't perform it on a comptuer, 
         return an empty JSON.""".format(action_text, OS, context, list(tasks), KEYS)
         self._set_prompt(prompt)
@@ -274,10 +275,11 @@ class EvaluateStepTemplate(PromptTemplate):
         You have a list of possible tasks you can choose from: Task={}. Choose only from the list! Do not add steps which already are done.
         Add a description, where you add details to the chosen task like what to locate, where to click on, etc.
         Use this JSON schema:
-            Step = {{"step_name": Task, "description": str, "keys": str, "text": str}}
+            Step = {{"step_name": Task, "description": str, "keys": str, "text": str, "amount:" int}}
         If you chose PRESSKEY as step_name, then you have to add the a list of keys you pressed in the 'keys' field. (possible keys are: {}).
         If the list contains more than one key, be aware, that the all keys will be held down until the last key is pressed.
         If you chose TYPE and want to write a text, add the text to the 'text' field.
+        If you chose SCROLLUP or SCROLLDOWN, add the amount of scrolling in the 'amount' field (= number of clicks on the scrolling bar).
         Do not fill the 'text' and 'keys' field at the same time.
         Return a 'list[Step]'. If you don't know which steps to perform return an empty JSON.
         The last step should be 'FINISHEDTASK'.
@@ -386,10 +388,11 @@ class ImproveTaskTemplate(PromptTemplate):
         You have a list of possible tasks you can choose from: Task={}. Choose only from the list! Do not add steps which already are done.
         Add a description, where you add details to the chosen task like what to locate, where to click on, etc.
         Use this JSON schema:
-            Step = {{"step_name": Task, "description": str, "keys": str, "text": str}}
+            Step = {{"step_name": Task, "description": str, "keys": str, "text": str, amount: int}}
         If you chose PRESSKEY as step_name, then you have to add the a list of keys you pressed in the 'keys' field. (possible keys are: {}).
         If the list contains more than one key, be aware, that the all keys will be held down until the last key is pressed.
         If you chose TYPE and want to write a text, add the text to the 'text' field.
+        If you chose SCROLLUP or SCROLLDOWN, add the amount of scrolling in the 'amount' field (= number of clicks on the scrolling bar).
         Do not fill the 'text' and 'keys' field at the same time.
         Return a 'Step'. If you don't know which steps to perform return an empty JSON.""".format(
             action_text,

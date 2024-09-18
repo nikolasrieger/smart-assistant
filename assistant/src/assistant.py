@@ -76,9 +76,11 @@ class Assistant:
             elif task_type == Tasks.DOUBLECLICK:
                 double_click()
             elif task_type == Tasks.SCROLLDOWN:
-                scroll_down()  # TODO: add amount
+                for i in range(step["amount"]):
+                    scroll_down()
             elif task_type == Tasks.SCROLLUP:
-                scroll_up()  # TODO: add amount
+                for i in range(step["amount"]):
+                    scroll_up()
             elif task_type == Tasks.PRESSKEY:
                 keys = step["keys"]
                 press_key(keys)
