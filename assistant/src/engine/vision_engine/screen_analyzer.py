@@ -9,6 +9,7 @@ from lib.llm_models.prompts import (
     ImageTODOSTemplate,
     TaskDoneScreenTemplate,
     TaskDoneTemplate,
+    DragPositionTemplate,
 )
 from json import loads
 
@@ -63,6 +64,22 @@ class ScreenAnalyzer:
         template = TaskDoneTemplate(task, result, result_prediction)
         result = self.__model.generate(template.prompt(), template.generation_config())
         return result
+
+    def analyze_drag_coordinates(self, prompt: str, image: Image = None):
+        if image is None:
+            image = self.__screen_handler.get_active_screen()
+        template = DragPositionTemplate(prompt)
+        result = self.__model.generate_with_image(
+            template.prompt(), image, template.generation_config()
+        )
+        try:
+            coordinates = loads(result)
+            x1, y1 = self.__convert_pos((coordinates[0], coordinates[1]), image.size)
+            x2, y2 = self.__convert_pos((coordinates[2], coordinates[3]), image.size)
+            self.__save_image(image, ((x1, y1), (x2, y2)))
+            return [(x1, y2), (x2, y2)]
+        except (IndexError, TypeError):
+            return [(None, None), (None, None)]
 
     def __save_image(
         self,

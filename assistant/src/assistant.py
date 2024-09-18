@@ -52,16 +52,25 @@ class Assistant:
             if status == "Done":
                 step = self.__step_retriever.retrieve_step()
             self.__print_task(step)
-            try: 
+            try:
                 task_type = Tasks.from_string(step["step_name"])
-            except ValueError: 
-                task_type = Tasks.SKIPSTEP # TODO: Handle this better
+            except ValueError:
+                status = "Retry"
             if task_type == Tasks.LEFTCLICK:
                 click_left()
             elif task_type == Tasks.RIGHTCLICK:
                 click_right()
             elif task_type == Tasks.DRAG:
-                pass  # TODO: add position
+                pos = self.__screen_analyzer.analyze_drag_coordinates(
+                    step["description"]
+                )
+                if pos == [(None, None), (None, None)]:
+                    task_type = Tasks.QUESTION
+                    status = "Not-Done"
+                else:
+                    status = "Done"
+                    locate(pos[0])
+                    drag(pos[1])
             elif task_type == Tasks.DOUBLECLICK:
                 double_click()
             elif task_type == Tasks.SCROLLDOWN:
@@ -104,17 +113,20 @@ class Assistant:
             time_delta = time() - actual_time
             if time_delta < TIME_DELTA:
                 sleep(TIME_DELTA - time_delta)
-            if task_type not in DO_NOT_CHECK:
-                status = self.__screen_analyzer.analzye_image_task(step["description"])
-                # TODO: Maybe adapt task type based on status
+            if task_type not in DO_NOT_CHECK or status == "Retry":
+                if status != "Retry":
+                    status = self.__screen_analyzer.analzye_image_task(
+                        step["description"]
+                    )
+                else:
+                    status = "Not-Done"
+                # TODO: Adapt task type based on status
             self.__print_status(status)
             counter += 1
 
     def __print_task(self, task: dict):
-        print(
-            "[INFO]:  ", task["step_name"], " - ", task["description"]
-        )
-    
+        print("[INFO]:  ", task["step_name"], " - ", task["description"])
+
     def __print_status(self, status: str):
         print("[{}]".format(status))
 

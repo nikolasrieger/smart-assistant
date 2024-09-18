@@ -226,9 +226,6 @@ class PromptTemplate:
         return Model.set_generation_config()
 
 
-# TODO: Delete old and incorporate new tasks
-# TODO: Evaluate all future tasks based on the previous tasks
-
 class GenerateTasksTemplate(PromptTemplate):
     def __init__(self, action_text: str, tasks: Enum, context: str = ""):
         super().__init__()
@@ -250,6 +247,7 @@ class GenerateTasksTemplate(PromptTemplate):
 
     def generation_config(self):
         return Model.set_generation_config(response_mime_type="application/json")
+
 
 class EvaluateStepTemplate(PromptTemplate):
     def __init__(
@@ -325,7 +323,9 @@ class ImageCoordinatesTemplate(PromptTemplate):
 class ImageDetailsTemplate(PromptTemplate):
     def __init__(self):
         super().__init__()
-        prompt = """Analyze the following image and return a description of the image."""
+        prompt = (
+            """Analyze the following image and return a description of the image."""
+        )
         self._set_prompt(prompt)
 
 
@@ -364,3 +364,13 @@ class TaskDoneTemplate(PromptTemplate):
         return Model.set_generation_config(
             response_mime_type="text/x.enum", response_schema=TaskDone
         )
+
+
+class DragPositionTemplate(PromptTemplate):
+    def __init__(self, description: str):
+        super().__init__()
+        prompt = """You need to do following task, which involves some dragging: {}.
+        return the start and end coordinates of the drag in this format: [start_x, start_y, end_x, end_y].""".format(
+            description
+        )
+        self._set_prompt(prompt)
