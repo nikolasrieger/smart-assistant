@@ -7,13 +7,13 @@ from numpy import (
 from sys import argv, exit
 from pyqtgraph import PlotWidget, mkPen, mkBrush
 from PyQt6.QtWidgets import QVBoxLayout, QWidget, QApplication
-from PyQt6.QtCore import QTimer, Qt
-from PyQt6.QtGui import QColor, QRegion
+from PyQt6.QtCore import QTimer, Qt, QRectF
+from PyQt6.QtGui import QColor, QRegion, QPainterPath
 from widgets.rounded_graph_item import RoundedBarGraphItem
 from engine.audio_engine.stream_controller import StreamController
 
 # TODO: Record audio
-# TODO: Move to right position
+# TODO: Make antialised/smoother
 # TODO: scale audio data to circle
 # TODO: Start and stop button
 
@@ -25,9 +25,7 @@ class StreamViz(QWidget):
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
-        self.setFixedSize(200, 200)
-
-        self.setCircularShape()
+        self.setFixedSize(150, 150)
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_streamplot)
@@ -57,17 +55,32 @@ class StreamViz(QWidget):
         )
         self.p.addItem(self.pdataitem)
         self.sc.setup_stream()
+        self.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent)
+        self.setCircularShape()
 
     def setCircularShape(self):
         size = int(min(self.width(), self.height()) * 0.75)
         x_offset = (self.width() - size) // 2
         y_offset = (self.height() - size) // 2
-        region = QRegion(x_offset, y_offset, size, size, QRegion.RegionType.Ellipse)
+        rect = QRectF(x_offset, y_offset, size, size)
+
+        path = QPainterPath()
+        path.addEllipse(rect)
+
+        region = QRegion(path.toFillPolygon().toPolygon())
+
         self.setMask(region)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.setCircularShape()
+        QTimer.singleShot(1, self.lowerRight)
+        self.show()
+
+    def lowerRight(self):
+        screen_geom = QApplication.primaryScreen().availableGeometry()
+        pos = screen_geom.bottomRight() - self.rect().bottomRight()
+        self.move(pos)
 
     def update_streamplot(self):
         num_bars = len(self.sc.median_data)
