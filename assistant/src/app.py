@@ -8,13 +8,11 @@ from sys import argv, exit
 from pyqtgraph import PlotWidget, mkPen, mkBrush
 from PyQt6.QtWidgets import QVBoxLayout, QWidget, QApplication
 from PyQt6.QtCore import QTimer, Qt, QRectF
-from PyQt6.QtGui import QColor, QRegion, QPainterPath
+from PyQt6.QtGui import QColor, QRegion, QPainterPath, QPainter, QBrush, QPen
 from widgets.rounded_graph_item import RoundedBarGraphItem
 from engine.audio_engine.stream_controller import StreamController
 
 # TODO: Record audio
-# TODO: Make antialised/smoother
-# TODO: scale audio data to circle
 # TODO: Start and stop button
 
 
@@ -23,7 +21,8 @@ class StreamViz(QWidget):
         super(StreamViz, self).__init__()
         self.setWindowTitle("Smart Assistant")
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.setStyleSheet("background: transparent")
 
         self.setFixedSize(150, 150)
 
@@ -38,7 +37,8 @@ class StreamViz(QWidget):
         plot_item = self.p.getPlotItem()
         plot_item.hideAxis("left")
         plot_item.hideAxis("bottom")
-        self.p.setBackground(QColor("#009973"))
+        self.p.setBackground(None)
+        self.setStyleSheet("background: transparent")
         self.l.addWidget(self.p)
 
         self.sc = StreamController()
@@ -55,8 +55,24 @@ class StreamViz(QWidget):
         )
         self.p.addItem(self.pdataitem)
         self.sc.setup_stream()
-        self.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent)
-        self.setCircularShape()
+        #self.setCircularShape()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        brush = QBrush(QColor("#009973"))
+        pen = QPen(QColor("#009973"))
+
+        painter.setBrush(brush)
+        painter.setPen(pen)
+
+        rect = QRectF(0, 0, self.width(), self.height())
+        painter.drawEllipse(rect)
+
+        path = QPainterPath()
+        path.addEllipse(rect)
+        painter.setClipPath(path)
 
     def setCircularShape(self):
         size = int(min(self.width(), self.height()) * 0.75)
@@ -73,7 +89,7 @@ class StreamViz(QWidget):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        self.setCircularShape()
+        #self.setCircularShape()
         QTimer.singleShot(1, self.lowerRight)
         self.show()
 
@@ -86,9 +102,6 @@ class StreamViz(QWidget):
         num_bars = len(self.sc.median_data)
         self.x = linspace(-num_bars / 2, num_bars / 2, num_bars)
         heights = array(self.sc.median_data)
-        if len(heights) != 0:
-            if abs(heights).max() == 0:
-                heights = array([0.1] * num_bars)
         y0 = full_like(heights, -heights / 2)
         self.pdataitem.setOpts(
             x=self.x,
