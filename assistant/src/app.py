@@ -1,16 +1,28 @@
-from numpy import zeros, int32, frombuffer, median, linspace, array, full_like, abs, concatenate
+from numpy import (
+    zeros,
+    int32,
+    frombuffer,
+    median,
+    linspace,
+    array,
+    full_like,
+    abs,
+    concatenate,
+)
 from sys import argv, exit
 from pyaudio import paInt16, PyAudio
-from pyqtgraph import BarGraphItem, PlotWidget, mkPen, mkBrush
+from pyqtgraph import PlotWidget, mkPen, mkBrush
 from PyQt6.QtWidgets import QVBoxLayout, QWidget, QApplication
-from PyQt6.QtCore import QThread, QEventLoop, QTimer, pyqtSignal, QRectF, Qt
-from PyQt6.QtGui import QColor, QPainterPath, QPainter, QRegion
+from PyQt6.QtCore import QThread, QEventLoop, QTimer, pyqtSignal, Qt
+from PyQt6.QtGui import QColor, QRegion
+from widgets.rounded_graph_item import RoundedBarGraphItem
 
 # TODO: Record audio
 # TODO: Move to right position
 # TODO: scale audio data to circle
 # TODO: Start and stop button
 # TODO: maybe split in different files
+
 
 class MicThread(QThread):
     sig = pyqtSignal(bytes)
@@ -35,7 +47,7 @@ class StreamController(QWidget):
         super(StreamController, self).__init__()
         self.data = zeros((100000), dtype=int32)
         self.median_data = []
-        self.buffer = array([], dtype=int32) 
+        self.buffer = array([], dtype=int32)
         self.CHUNK = 1024
         self.CHANNELS = 1
         self.RATE = 44100
@@ -61,13 +73,13 @@ class StreamController(QWidget):
         self.data[:-c] = self.data[c:]
         self.data[-c:] = vals
 
-        self.buffer = concatenate([self.buffer, vals]) 
+        self.buffer = concatenate([self.buffer, vals])
 
         while len(self.buffer) >= self.samples_per_interval:
-            interval_data = self.buffer[:self.samples_per_interval]
+            interval_data = self.buffer[: self.samples_per_interval]
             median_value = median(interval_data)
             self.median_data.append(median_value)
-            self.buffer = self.buffer[self.samples_per_interval:] 
+            self.buffer = self.buffer[self.samples_per_interval :]
 
         if len(self.median_data) * self.samples_per_interval > len(self.data):
             self.median_data = self.median_data[
@@ -84,65 +96,42 @@ class StreamController(QWidget):
         loop.exec()
 
 
-class RoundedBarGraphItem(BarGraphItem):
-    def __init__(self, x=None, height=None, width=0.8, pen=None, brush=None, y0=None, radius=5):
-        super(RoundedBarGraphItem, self).__init__(x=x, height=height, width=width, pen=pen, brush=brush, y0=y0)
-        self.radius = radius
-
-    def paint(self, p, *args):
-        p.setPen(self.opts['pen'])
-        p.setBrush(self.opts['brush'])
-        path = QPainterPath()
-        width = self.opts['width']
-        half_width = width / 2
-
-        for i in range(len(self.opts['x'])):
-            x = self.opts['x'][i]
-            y = self.opts['y0'][i]
-            height = self.opts['height'][i]
-            bar_width = width
-
-            rect = QRectF(x - half_width, y, bar_width, height)
-            path.addRoundedRect(rect, self.radius, self.radius)
-
-        p.drawPath(path)
-
-class RoundedPlotWidget(PlotWidget):
-    def __init__(self, parent=None, background='default', plotItem=None, **kargs):
-        super().__init__(parent, background, plotItem, **kargs)
-        self.setRenderHint(QPainter.RenderHint.Antialiasing)
-
 class StreamViz(QWidget):
     def __init__(self):
         super(StreamViz, self).__init__()
         self.setWindowTitle("Smart Assistant")
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        
+
         self.setFixedSize(200, 200)
-        
-        self.setCircularShape() 
-        
+
+        self.setCircularShape()
+
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_streamplot)
         self.timer.start(200)
-        
+
         self.l = QVBoxLayout()
         self.setLayout(self.l)
-        
-        self.p = RoundedPlotWidget()
+
+        self.p = PlotWidget()
         plot_item = self.p.getPlotItem()
         plot_item.hideAxis("left")
         plot_item.hideAxis("bottom")
         self.p.setBackground(QColor("#009973"))
         self.l.addWidget(self.p)
-        
+
         self.sc = StreamController()
         self.l.addWidget(self.sc)
-        
+
         self.bar_color = QColor("#66ff99")
         self.pdataitem = RoundedBarGraphItem(
-            x=[], height=[], width=0.8, pen=mkPen(color=self.bar_color, width=2), brush=mkBrush(self.bar_color), radius=10
+            x=[],
+            height=[],
+            width=0.8,
+            pen=mkPen(color=self.bar_color, width=2),
+            brush=mkBrush(self.bar_color),
+            radius=10,
         )
         self.p.addItem(self.pdataitem)
         self.sc.setup_stream()
@@ -167,7 +156,12 @@ class StreamViz(QWidget):
                 heights = array([0.1] * num_bars)
         y0 = full_like(heights, -heights / 2)
         self.pdataitem.setOpts(
-            x=self.x, height=heights, width=0.8, pen=mkPen(color=self.bar_color, width=2), brush=mkBrush(self.bar_color), y0=y0
+            x=self.x,
+            height=heights,
+            width=0.8,
+            pen=mkPen(color=self.bar_color, width=2),
+            brush=mkBrush(self.bar_color),
+            y0=y0,
         )
         if len(heights) != 0:
             y_max = abs(heights).max() / 2
@@ -175,6 +169,7 @@ class StreamViz(QWidget):
             self.p.setYRange(-y_max - padding, y_max + padding)
         self.p.setXRange(-num_bars / 2, num_bars / 2)
         self.p.update()
+
 
 if __name__ == "__main__":
     app = QApplication(argv)
