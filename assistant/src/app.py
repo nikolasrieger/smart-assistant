@@ -1,19 +1,15 @@
-from numpy import (
-    linspace,
-    array,
-    full_like,
-    abs,
-)
+from numpy import linspace, array, full_like, abs
 from sys import argv, exit
 from pyqtgraph import PlotWidget, mkPen, mkBrush
-from PyQt6.QtWidgets import QVBoxLayout, QWidget, QApplication
-from PyQt6.QtCore import QTimer, Qt, QRectF
-from PyQt6.QtGui import QColor, QRegion, QPainterPath, QPainter, QBrush, QPen
-from widgets.rounded_graph_item import RoundedBarGraphItem
+from PyQt6.QtWidgets import QVBoxLayout, QWidget, QApplication, QLabel, QStackedLayout
+from PyQt6.QtCore import QTimer, Qt, QRectF, QSize
+from PyQt6.QtGui import QColor, QRegion, QPainterPath, QPainter, QBrush, QPen, QPixmap
 from engine.audio_engine.stream_controller import StreamController
+from widgets.rounded_graph_item import RoundedBarGraphItem
 
-# TODO: Record audio
-# TODO: Start and stop button
+# TODO: more spacing
+# TODO: record
+# TODO: change icon color
 
 
 class StreamViz(QWidget):
@@ -28,10 +24,14 @@ class StreamViz(QWidget):
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_streamplot)
-        self.timer.start(200)
+
+        self.is_playing = True
+
+        self.main_widget = QWidget()
 
         self.l = QVBoxLayout()
-        self.setLayout(self.l)
+        self.main_widget.setLayout(self.l)
+        self.main_widget.setStyleSheet("background: transparent")
 
         self.p = PlotWidget()
         plot_item = self.p.getPlotItem()
@@ -55,7 +55,22 @@ class StreamViz(QWidget):
         )
         self.p.addItem(self.pdataitem)
         self.sc.setup_stream()
-        #self.setCircularShape()
+
+        self.image = QLabel(self)
+        self.image.setPixmap(
+            QPixmap("mic_icon.png").scaled(
+                QSize(100, 100),
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            )
+        )
+        self.image.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.image.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+
+        self.stacked_layout = QStackedLayout()
+        self.stacked_layout.addWidget(self.image)
+        self.stacked_layout.addWidget(self.main_widget)
+        self.setLayout(self.stacked_layout)
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -89,7 +104,6 @@ class StreamViz(QWidget):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        #self.setCircularShape()
         QTimer.singleShot(1, self.lowerRight)
         self.show()
 
@@ -117,6 +131,27 @@ class StreamViz(QWidget):
             self.p.setYRange(-y_max - padding, y_max + padding)
         self.p.setXRange(-num_bars / 2, num_bars / 2)
         self.p.update()
+
+    def mousePressEvent(self, event):
+        if self.is_playing:
+            self.timer.stop()
+            self.p.hide()
+            self.image.show()
+            self.stacked_layout.removeWidget(self.main_widget)
+            self.stacked_layout.removeWidget(self.image)
+            self.stacked_layout.addWidget(self.image)
+            self.stacked_layout.addWidget(self.main_widget)
+        else:
+            self.timer.start(200)
+            self.p.setBackground(None)
+            self.setStyleSheet("background: transparent")
+            self.p.show()
+            self.image.hide()
+            self.stacked_layout.removeWidget(self.main_widget)
+            self.stacked_layout.removeWidget(self.image)
+            self.stacked_layout.addWidget(self.main_widget)
+            self.stacked_layout.addWidget(self.image)
+        self.is_playing = not self.is_playing
 
 
 if __name__ == "__main__":
