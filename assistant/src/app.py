@@ -7,10 +7,6 @@ from PyQt6.QtGui import QColor, QRegion, QPainterPath, QPainter, QBrush, QPen, Q
 from engine.audio_engine.stream_controller import StreamController
 from widgets.rounded_graph_item import RoundedBarGraphItem
 
-# TODO: more spacing
-# TODO: record
-# TODO: change icon color
-
 
 class StreamViz(QWidget):
     def __init__(self):
@@ -58,7 +54,7 @@ class StreamViz(QWidget):
 
         self.image = QLabel(self)
         self.image.setPixmap(
-            QPixmap("mic_icon.png").scaled(
+            QPixmap("icons/mic_icon.png").scaled(
                 QSize(100, 100),
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation,
@@ -82,7 +78,7 @@ class StreamViz(QWidget):
         painter.setBrush(brush)
         painter.setPen(pen)
 
-        rect = QRectF(0, 0, self.width(), self.height())
+        rect = QRectF(1, 1, self.width() - 1, self.height() - 1)
         painter.drawEllipse(rect)
 
         path = QPainterPath()
@@ -115,6 +111,7 @@ class StreamViz(QWidget):
     def update_streamplot(self):
         num_bars = len(self.sc.median_data)
         self.x = linspace(-num_bars / 2, num_bars / 2, num_bars)
+        self.x = self.x * (0.8 + 1)
         heights = array(self.sc.median_data)
         y0 = full_like(heights, -heights / 2)
         self.pdataitem.setOpts(

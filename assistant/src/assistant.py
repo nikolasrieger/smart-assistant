@@ -31,7 +31,7 @@ DO_NOT_CHECK = [
 
 TIME_DELTA = 1
 
-# TODO: Add speech support
+# TODO: Add speech support + record audio
 # TODO: maybe something with Screen Delta?
 
 
