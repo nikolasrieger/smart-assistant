@@ -121,9 +121,9 @@ class Assistant:
             elif task_type == Tasks.SKIPSTEP:
                 continue
             elif task_type == Tasks.QUESTION:
-                pass  # TODO: interact with user
+                tell(Fore.BLUE + "[OmniAssist]: " + Fore.RESET + step["text"])
             elif task_type == Tasks.TELL:
-                tell(Fore.BLUE + "[CHATBOT]: " + Fore.RESET + step["text"])
+                tell(Fore.BLUE + "[OmniAssist]: " + Fore.RESET + step["text"])
             time_delta = time() - actual_time
             if time_delta < TIME_DELTA:
                 sleep(TIME_DELTA - time_delta)

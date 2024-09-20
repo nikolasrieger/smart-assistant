@@ -1,4 +1,4 @@
-# 🚀 Smart Assistant for Computer Interaction
+# 🚀 OmniAssist: Smart Assistant for Computer Interaction
 
 ## Overview
 
