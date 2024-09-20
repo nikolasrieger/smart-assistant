@@ -1,5 +1,6 @@
 from google.generativeai import embed_content, configure
 from google.api_core.exceptions import InternalServerError, ServiceUnavailable
+from colorama import Fore
 
 
 class EmbeddingModel:
@@ -12,11 +13,11 @@ class EmbeddingModel:
             result = embed_content(model="models/embedding-001", content=text)
             self.__errors = 0
         except InternalServerError:
-            print("[ERROR]:  Internal Server Error")
+            print(Fore.RED + "[ERROR]:  Internal Server Error" + Fore.RESET)
             self.check_abort()
             return
         except ServiceUnavailable:
-            print("[ERROR]:  Service Unavailable")
+            print(Fore.RED + "[ERROR]:  Service Unavailable" + Fore.RESET)
             self.check_abort()
             return
         return result["embedding"]

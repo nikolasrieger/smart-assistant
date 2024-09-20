@@ -1,4 +1,4 @@
-from prompts import PromptTemplate
+from lib.llm_models.prompts import PromptTemplate
 
 
 class ImageCoordinatesTemplate(PromptTemplate):

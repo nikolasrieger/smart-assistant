@@ -49,3 +49,7 @@ def hold_key(key: str, keys: list):
             press(keys[0])
         else:
             hold_key(keys[0], keys[1:])
+
+
+def tell(text: str):
+    print(text)  # TODO: Should be speech output

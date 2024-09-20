@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 from os import getenv
+from colorama import Fore
 from lib.llm_models.model import Model
 from lib.llm_models.embeddings import EmbeddingModel
 from engine.step_engine.input_handler import InputHandler
@@ -14,6 +15,7 @@ from engine.action_engine.actions import (
     scroll_up,
     scroll_down,
     press_key,
+    tell,
 )
 from engine.vision_engine.screen_analyzer import ScreenAnalyzer
 from lib.llm_models.task_prompts import ImproveTaskTemplate
@@ -27,12 +29,16 @@ DO_NOT_CHECK = [
     Tasks.SKIPSTEP,
     Tasks.LOCATE,
     Tasks.QUESTION,
+    Tasks.TELL,
 ]
 
 TIME_DELTA = 1
+INFO_MESSAGES = True
 
 # TODO: Add speech support + record audio
 # TODO: maybe something with Screen Delta?
+# TODO: intelligent redo of internet search
+# TODO: Add access to terminal
 
 
 class Assistant:
@@ -54,11 +60,12 @@ class Assistant:
             actual_time = time()
             if status == "Done":
                 step = self.__step_retriever.retrieve_step()
-            self.__print_task(step)
             try:
                 task_type = Tasks.from_string(step["step_name"])
             except ValueError:
                 status = "Retry"
+            if INFO_MESSAGES:
+                self.__print_task(step, task_type)
             if task_type == Tasks.LEFTCLICK:
                 click_left()
             elif task_type == Tasks.RIGHTCLICK:
@@ -115,6 +122,8 @@ class Assistant:
                 continue
             elif task_type == Tasks.QUESTION:
                 pass  # TODO: interact with user
+            elif task_type == Tasks.TELL:
+                tell(Fore.BLUE + "[CHATBOT]: " + Fore.RESET + step["text"])
             time_delta = time() - actual_time
             if time_delta < TIME_DELTA:
                 sleep(TIME_DELTA - time_delta)
@@ -132,14 +141,36 @@ class Assistant:
                         prompt.prompt(), prompt.generation_config()
                     )
                     step = loads(result)
-            self.__print_status(status)
+            if INFO_MESSAGES and task_type not in [
+                Tasks.TELL,
+                Tasks.CANCELTASK,
+                Tasks.FINISHEDTASK,
+                Tasks.SKIPSTEP,
+                Tasks.QUESTION,
+            ]:
+                self.__print_status(status)
             counter += 1
 
-    def __print_task(self, task: dict):
-        print("[INFO]:  ", task["step_name"], " - ", task["description"])
+    def __print_task(self, task: dict, task_type: Tasks):
+        if task_type in DO_NOT_CHECK:
+            print(
+                Fore.YELLOW + "[INFO]:  " + Fore.RESET + task["step_name"],
+                " - ",
+                task["description"],
+            )
+        else:
+            print(
+                Fore.YELLOW + "[INFO]:  " + Fore.RESET + task["step_name"],
+                " - ",
+                task["description"],
+                end=" ",
+            )
 
     def __print_status(self, status: str):
-        print("[{}]".format(status))
+        if status == "Done":
+            print(Fore.GREEN + "[{}]".format(status) + Fore.RESET)
+        else:
+            print(Fore.RED + "[{}]".format(status) + Fore.RESET)
 
     def cleanup(self):
         self.__model.delete_files()
@@ -150,4 +181,4 @@ if __name__ == "__main__":
     model = Model(getenv("GEMINI_API_KEY"))
     embedding_model = EmbeddingModel(getenv("GEMINI_API_KEY"))
     assistant = Assistant(model, embedding_model)
-    assistant.do_task("Open Mozilla Firefox")
+    assistant.do_task("What time is it?")

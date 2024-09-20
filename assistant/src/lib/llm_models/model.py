@@ -1,6 +1,7 @@
 from google.generativeai import configure, GenerativeModel, GenerationConfig, list_files
 from google.api_core.exceptions import InternalServerError, ServiceUnavailable
 from PIL import Image
+from colorama import Fore
 
 
 class Model:
@@ -20,11 +21,11 @@ class Model:
             )
             self.__errors = 0
         except InternalServerError:
-            print("[ERROR]:  Internal Server Error", prompt)
+            print(Fore.RED + "[ERROR]:  Internal Server Error", prompt + Fore.RESET)
             self.check_abort()
             return
         except ServiceUnavailable:
-            print("[ERROR]:  Service Unavailable")
+            print(Fore.RED + "[ERROR]:  Service Unavailable" + Fore.RESET)
             self.check_abort()
             return
         return res.text
@@ -38,11 +39,11 @@ class Model:
             )
             self.__errors = 0
         except InternalServerError:
-            print("[ERROR]:  Internal Server Error")
+            print(Fore.RED + "[ERROR]:  Internal Server Error" + Fore.RESET)
             self.check_abort()
             return
         except ServiceUnavailable:
-            print("[ERROR]:  Service Unavailable")
+            print(Fore.RED + "[ERROR]:  Service Unavailable" + Fore.RESET)
             self.check_abort()
             return
         return res.text

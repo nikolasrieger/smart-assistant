@@ -1,6 +1,7 @@
 from googlesearch import search
 from requests import get
 from bs4 import BeautifulSoup
+from colorama import Fore
 
 
 class SearchResult:
@@ -23,7 +24,8 @@ class SearchEngine:
     def get_text_from_url(url: str):
         response = get(url)
         if response.status_code != 200:
-            raise Exception(f"Failed to fetch the page: {url}")
+            print(Fore.RED + "[ERROR]: Could not get content from url." + Fore.RESET)
+            return ""
         soup = BeautifulSoup(response.content, "html.parser")
         paragraphs = soup.find_all("p")
         text = "\n".join([p.get_text() for p in paragraphs])
