@@ -9,6 +9,7 @@ from numpy import (
 from pyaudio import paInt16, PyAudio
 from PyQt6.QtWidgets import QWidget
 from PyQt6.QtCore import QThread, QEventLoop, QTimer, pyqtSignal
+from speech_recognition import AudioData, Recognizer, UnknownValueError
 
 
 class MicThread(QThread):
@@ -41,6 +42,7 @@ class StreamController(QWidget):
         self.FORMAT = paInt16
         self.interval_ms = 150
         self.samples_per_interval = int(self.RATE * (self.interval_ms / 1000))
+        self.recognizer = Recognizer()
 
     def setup_stream(self):
         self.audio = PyAudio()
@@ -62,6 +64,8 @@ class StreamController(QWidget):
 
         self.buffer = concatenate([self.buffer, vals])
 
+        self.process_audio_for_text(vals)
+
         while len(self.buffer) >= self.samples_per_interval:
             interval_data = self.buffer[: self.samples_per_interval]
             median_value = median(interval_data)
@@ -72,6 +76,18 @@ class StreamController(QWidget):
             self.median_data = self.median_data[
                 -len(self.data) // self.samples_per_interval :
             ]
+
+    def process_audio_for_text(self, audio_data):
+        audio_bytes = audio_data.tobytes()
+
+        audio_source = AudioData(audio_bytes, self.RATE, 2) 
+
+        try:
+            text = self.recognizer.recognize_google(audio_source)
+            print("Recognized Text: ", text)
+        except UnknownValueError:
+            print("Google Speech Recognition could not understand audio")
+
 
     def breakdown_stream(self):
         self.micthread.terminate()
