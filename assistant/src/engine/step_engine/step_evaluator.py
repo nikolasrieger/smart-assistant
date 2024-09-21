@@ -18,6 +18,7 @@ class Tasks(Enum):
     FINISHEDTASK = "FINISHEDTASK"
     SKIPSTEP = "SKIPSTEP"
     QUESTION = "QUESTION"
+    TERMINAL = "TERMINAL"
 
     @classmethod
     def from_string(cls, string: str):
@@ -43,7 +44,8 @@ class StepEvaluator:
         next_steps: list,
         action_text: str,
         screen_details: str,
-        additional_info: str = "",
+        console_output: str,
+        additional_info: str,
     ):
         template = EvaluateStepTemplate(
             action_text,
@@ -51,6 +53,7 @@ class StepEvaluator:
             next_steps,
             Tasks,
             additional_info,
+            console_output,
             screen_details,
         )
         result = self.__model.generate(template.prompt(), template.generation_config())

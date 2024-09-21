@@ -17,6 +17,8 @@ class GenerateTasksTemplate(PromptTemplate):
         If you chose TYPE and want to write a text, add the text to the 'text' field.
         If you chose SCROLLUP or SCROLLDOWN, add the amount of scrolling in the 'amount' field (= number of clicks on the scrolling bar).
         If you chose TELL, add all the text you want to tell the user in the 'text' field. Answer the complete question, do not leave anything out. 
+        Do not tell the same thing twice (check the completed tasks) and do not leave the answer out.
+        You have the permission to use the terminal. If you want to run a command on the computer, choose TERMINAL, you have to add the command you want to run in the 'text' field.
         Use the context from the internet search for real time data. If you don't know the answer, say so.
         Do not fill the 'text' and 'keys' field at the same time.
         Use this JSON schema:
@@ -37,15 +39,18 @@ class EvaluateStepTemplate(PromptTemplate):
         next_step: dict,
         tasks: Enum,
         additional_info: str,
+        console_output: str,
         screen_details: str,
     ):
         super().__init__()
         if additional_info != "":
-            info = "You got this additional info from the user: {}, include it in your evaluation.".format(
+            additional_info = "You got this additional info from the user: {}, include it in your evaluation.".format(
                 additional_info
             )
-        else:
-            info = ""
+        if console_output != "":
+            additional_info += "The console output of the last executed command is: {}, include it in your evaluation.".format(
+                console_output
+            )
         prompt = """Imagine you are a smart computer assistant with textual and visual understanding helping a user to perform tasks. 
         You can see the screen, do things on the computer and interact with the user. You got the following computer-related task from the user: {}. {} The OS is {}.
         This is what you see on your screen in this moment, try to use it for real-time data: {}. 
@@ -60,7 +65,9 @@ class EvaluateStepTemplate(PromptTemplate):
         If the list contains more than one key, be aware, that the all keys will be held down until the last key is pressed.
         If you chose TYPE and want to write a text, add the text to the 'text' field.
         If you chose SCROLLUP or SCROLLDOWN, add the amount of scrolling in the 'amount' field (= number of clicks on the scrolling bar).
-        If you chose TELL, add all the text you want to tell the user in the 'text' field. Answer the complete question, do not leave anything out. If you don't know the answer, say so.
+        If you chose TELL, add all the text you want to tell the user in the 'text' field. Answer the complete question, do not leave anything out. 
+        Do not tell the same thing twice (check the completed tasks) and do not leave the answer out.
+        You have the permission to use the terminal. If you want to run a command on the computer, choose TERMINAL, you have to add the command you want to run in the 'text' field.
         If you completed the task, return 'FINISHEDTASK'. Do not do any steps more than once (except they failed). Do not retrun steps which are already done.
         If you are sure, you cannot complete the task, return 'CANCELTASK' or 'QUESTION' if you need any help from the user. Add the Question in the 'text' field.
         Do not fill the 'text' and 'keys' field at the same time.
@@ -68,7 +75,7 @@ class EvaluateStepTemplate(PromptTemplate):
         The last step should be 'FINISHEDTASK'.
         If the there is any additional information to cancel the task, then include 'CANCELTASK' as only step.""".format(
             action_text,
-            info,
+            additional_info,
             OS,
             screen_details,
             finished_steps,
@@ -129,7 +136,9 @@ class ImproveTaskTemplate(PromptTemplate):
         If the list contains more than one key, be aware, that the all keys will be held down until the last key is pressed.
         If you chose TYPE and want to write a text, add the text to the 'text' field.
         If you chose SCROLLUP or SCROLLDOWN, add the amount of scrolling in the 'amount' field (= number of clicks on the scrolling bar).
-        If you chose TELL, add all the text you want to tell the user in the 'text' field. Answer the complete question, do not leave anything out. If you don't know the answer, say so.
+        If you chose TELL, add all the text you want to tell the user in the 'text' field. Answer the complete question, do not leave anything out. 
+        Do not tell the same thing twice (check the completed steps) and do not leave the answer out.
+        You have the permission to use the terminal. If you want to run a command on the computer, choose TERMINAL, you have to add the command you want to run in the 'text' field.
         If you are sure, you cannot complete the task, return 'CANCELTASK' or 'QUESTION' if you need any help from the user. Add the Question in the 'text' field.
         Do not fill the 'text' and 'keys' field at the same time.
         Return a 'Step'. If you don't know which steps to perform return an empty JSON.""".format(

@@ -1,4 +1,9 @@
 from pyautogui import moveTo, click, scroll, dragTo, press, write, hold
+from subprocess import Popen, PIPE
+from sys import platform
+
+OS = platform
+process = None
 
 
 def locate(pos: tuple[int, int]):
@@ -53,3 +58,27 @@ def hold_key(key: str, keys: list):
 
 def tell(text: str):
     print(text)  # TODO: Should be speech output
+
+
+def init_terminal():
+    global process
+    if OS.startswith("win"):
+        terminal = "cmd.exe"
+    else:
+        terminal = "bash"
+    process = Popen(
+        [terminal],
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=PIPE,
+        shell=True,
+        text=True,
+    )
+
+
+def terminal(text: str):
+    global process
+    process.stdin.write(text)
+    process.stdin.flush()
+    output, error = process.communicate()
+    return output, error

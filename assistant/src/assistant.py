@@ -16,6 +16,8 @@ from engine.action_engine.actions import (
     scroll_down,
     press_key,
     tell,
+    init_terminal,
+    terminal,
 )
 from engine.vision_engine.screen_analyzer import ScreenAnalyzer
 from lib.llm_models.task_prompts import ImproveTaskTemplate
@@ -30,6 +32,7 @@ DO_NOT_CHECK = [
     Tasks.LOCATE,
     Tasks.QUESTION,
     Tasks.TELL,
+    Tasks.TERMINAL,
 ]
 
 TIME_DELTA = 1
@@ -38,7 +41,6 @@ INFO_MESSAGES = True
 # TODO: Add speech support + record audio
 # TODO: maybe something with Screen Delta?
 # TODO: intelligent redo of internet search
-# TODO: Add access to terminal
 
 
 class Assistant:
@@ -50,16 +52,18 @@ class Assistant:
             model, embedding_model, self.__input_handler
         )
         register(self.cleanup)
+        init_terminal()
 
     def do_task(self, task: str):
         self.__step_retriever.new_task(task)
         counter = 0
         status = "Done"
+        output, error = "", ""
         task = self.__step_retriever.get_task()
         while counter < 3:
             actual_time = time()
             if status == "Done":
-                step = self.__step_retriever.retrieve_step()
+                step = self.__step_retriever.retrieve_step(output + error)
             try:
                 task_type = Tasks.from_string(step["step_name"])
             except ValueError:
@@ -84,10 +88,10 @@ class Assistant:
             elif task_type == Tasks.DOUBLECLICK:
                 double_click()
             elif task_type == Tasks.SCROLLDOWN:
-                for i in range(step["amount"]):
+                for _ in range(step["amount"]):
                     scroll_down()
             elif task_type == Tasks.SCROLLUP:
-                for i in range(step["amount"]):
+                for _ in range(step["amount"]):
                     scroll_up()
             elif task_type == Tasks.PRESSKEY:
                 keys = step["keys"]
@@ -114,6 +118,18 @@ class Assistant:
                 else:
                     status = "Done"
                     locate(pos)
+            elif task_type == Tasks.TERMINAL:
+                print(
+                    "Do you want to run this command? [y/n]: {} ".format(step["text"])
+                )
+                sleep(2)
+                ans = "y" # to speech input
+                if ans == "y":
+                    output, error = terminal(step["text"] + "\n")
+                else:
+                    output, error = "Aborted by user", "Aborted by user"
+                    status = "Not-Done"
+                tell(Fore.BLUE + "[OmniAssist]: " + Fore.RESET + output)
             elif task_type == Tasks.CANCELTASK:
                 break
             elif task_type == Tasks.FINISHEDTASK:
@@ -134,19 +150,20 @@ class Assistant:
                     )
                 else:
                     status = "Not-Done"
-                if status == "Not-Done":
-                    screen = self.__screen_analyzer.analyze_image_details()
-                    prompt = ImproveTaskTemplate(task, screen, step, Tasks)
-                    result = self.__model.generate(
-                        prompt.prompt(), prompt.generation_config()
-                    )
-                    step = loads(result)
+            if status == "Not-Done":
+                screen = self.__screen_analyzer.analyze_image_details()
+                prompt = ImproveTaskTemplate(task, screen, step, Tasks)
+                result = self.__model.generate(
+                    prompt.prompt(), prompt.generation_config()
+                )
+                step = loads(result)
             if INFO_MESSAGES and task_type not in [
                 Tasks.TELL,
                 Tasks.CANCELTASK,
                 Tasks.FINISHEDTASK,
                 Tasks.SKIPSTEP,
                 Tasks.QUESTION,
+                Tasks.TERMINAL,
             ]:
                 self.__print_status(status)
             counter += 1

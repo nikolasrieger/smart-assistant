@@ -32,11 +32,12 @@ class StepGenerator:
     def get_steps(self):
         return self.__step_list, self.__index
 
-    def next_step(self, screen_details: str, additional_info: str = ""):
+    def next_step(self, screen_details: str, console_output: str, additional_info: str):
         result = self.__evaluator.evaluate_next_step(
             self.__step_list[self.__index :],
             self.__task,
             additional_info,
+            console_output,
             screen_details,
         )
         if result is None:
@@ -67,12 +68,12 @@ class StepRetriever:
         if screen_details is None:
             self.__queue = [{"step_name": "SKIPSTEP"}]
         else:
-            self.__queue = [self.__step_generator.next_step(screen_details)]
+            self.__queue = [self.__step_generator.next_step(screen_details, "", "")]
 
     def get_task(self):
         return self.__task
 
-    def retrieve_step(self):
+    def retrieve_step(self, console_output: str = ""):
         if self.__step_generator is None:
             raise Exception("Step generator not set")
         if self.__input_handler.cancel_task():
@@ -84,6 +85,6 @@ class StepRetriever:
             if screen_details is None:
                 return {"step_name": "SKIPSTEP"}
             self.__queue += [
-                self.__step_generator.next_step(screen_details, additional_info)
+                self.__step_generator.next_step(screen_details, console_output, additional_info)
             ]
         return self.__queue.pop(0)
