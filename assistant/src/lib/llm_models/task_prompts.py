@@ -12,6 +12,7 @@ class GenerateTasksTemplate(PromptTemplate):
         Perform the task in the most logial and easy way. Do not make it too complicated.
         Break down the task into smaller actions based on your knowledge. 
         Following tasks are possible: Task={}. Choose only from the list!
+        You can use all programs on this computer, you just need to open them and use them after that.
         If you chose PRESSKEY as step_name, then you have to add the a list of keys you pressed in the 'keys' field. (possible keys are: {}). 
         If the list contains more than one key, be aware, that the all keys will be held down until the last key is pressed.
         If you chose TYPE and want to write a text, add the text to the 'text' field.
@@ -61,6 +62,7 @@ class EvaluateStepTemplate(PromptTemplate):
         Add a description, where you add details to the chosen task like what to locate, where to click on, etc.
         Use this JSON schema:
             Step = {{"step_name": Task, "description": str, "keys": str, "text": str, "amount:" int}}
+        You can use all programs on this computer, you just need to open them and use them after that.
         If you chose PRESSKEY as step_name, then you have to add the a list of keys you pressed in the 'keys' field. (possible keys are: {}).
         If the list contains more than one key, be aware, that the all keys will be held down until the last key is pressed.
         If you chose TYPE and want to write a text, add the text to the 'text' field.
@@ -132,6 +134,7 @@ class ImproveTaskTemplate(PromptTemplate):
         Add a description, where you add details to the chosen task like what to locate, where to click on, etc.
         Use this JSON schema:
             Step = {{"step_name": Task, "description": str, "keys": str, "text": str, amount: int}}
+        You can use all programs on this computer, you just need to open them and use them after that.
         If you chose PRESSKEY as step_name, then you have to add the a list of keys you pressed in the 'keys' field. (possible keys are: {}).
         If the list contains more than one key, be aware, that the all keys will be held down until the last key is pressed.
         If you chose TYPE and want to write a text, add the text to the 'text' field.
