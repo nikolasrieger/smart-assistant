@@ -56,7 +56,7 @@ class EvaluateStepTemplate(PromptTemplate):
         You can see the screen, do things on the computer and interact with the user. You got the following computer-related task from the user: {}. {} The OS is {}.
         This is what you see on your screen in this moment, try to use it for real-time data: {}. 
         Do not make it more complicated than it is, just as simple as possible.
-        Here is a list of steps you already performed: {}. If the task from the user is done, return 'FINISHEDTASK'.
+        Here is a list of steps you already performed: {}. If the task from the user is completed, you must return 'FINISHEDTASK'.
         Evaluate the next steps: {} you have to perform, based on your knowledge and the previous steps. Return the old or changed new steps.
         You have a list of possible tasks you can choose from: Task={}. Choose only from the list! Do not add steps which already are done.
         Add a description, where you add details to the chosen task like what to locate, where to click on, etc.
@@ -74,7 +74,7 @@ class EvaluateStepTemplate(PromptTemplate):
         If you are sure, you cannot complete the task, return 'CANCELTASK' or 'QUESTION' if you need any help from the user. Add the Question in the 'text' field.
         Do not fill the 'text' and 'keys' field at the same time.
         Return a 'list[Step]'. If you don't know which steps to perform return an empty JSON.
-        The last step should be 'FINISHEDTASK'.
+        The last step of the list should be 'FINISHEDTASK'. Do not add any of finished steps to the output, do not do steps more than once.
         If the there is any additional information to cancel the task, then include 'CANCELTASK' as only step.""".format(
             action_text,
             additional_info,

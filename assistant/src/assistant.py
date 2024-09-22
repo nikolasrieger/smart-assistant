@@ -60,7 +60,7 @@ class Assistant:
         status = "Done"
         output, error = "", ""
         task = self.__step_retriever.get_task()
-        while counter < 3:
+        while True:
             actual_time = time()
             if status == "Done":
                 step = self.__step_retriever.retrieve_step(output + error)
