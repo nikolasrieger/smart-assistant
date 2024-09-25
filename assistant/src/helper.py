@@ -36,7 +36,8 @@ DO_NOT_CHECK = [
 TIME_DELTA = 1
 INFO_MESSAGES = True
 
-# TODO: Add speech support + record audio
+# TODO: Add speech output
+# TODO: find when done
 # TODO: maybe something with Screen Delta?
 # TODO: intelligent redo of internet search
 
