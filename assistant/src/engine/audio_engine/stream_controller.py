@@ -27,6 +27,22 @@ class MicThread(QThread):
     def stop(self):
         self.running = False
 
+    def __del__(self):
+        print("Why me?")
+
+
+class TaskThread(QThread):
+    finished = pyqtSignal()
+
+    def __init__(self, assistant, text):
+        super(TaskThread, self).__init__()
+        self.assistant = assistant
+        self.text = text
+
+    def run(self):
+        self.assistant.do_task(self.text)
+        self.finished.emit()
+
 
 class SpeechRecognitionThread(QThread):
     def __init__(
@@ -47,7 +63,8 @@ class SpeechRecognitionThread(QThread):
                 if self.started_task:
                     self.assistant.input_handler.add_input(text)
                 else:
-                    self.assistant.do_task(text)
+                    task_thread = TaskThread(self.assistant, text)
+                    task_thread.start()
                 self.started_task = True
 
     def stop(self):
@@ -66,9 +83,8 @@ class StreamController(QWidget):
         self.FORMAT = paInt16
         self.interval_ms = 150
         self.samples_per_interval = int(self.RATE * (self.interval_ms / 1000))
-        self.speech_recognition_thread = SpeechRecognitionThread(
-            self, model, embedding_model
-        )
+        self.model = model
+        self.embedding_model = embedding_model
 
     def setup_stream(self):
         self.audio = PyAudio()
@@ -81,6 +97,9 @@ class StreamController(QWidget):
         )
         self.micthread = MicThread(self)
         self.micthread.start()
+        self.speech_recognition_thread = SpeechRecognitionThread(
+            self, self.model, self.embedding_model
+        )
         self.speech_recognition_thread.start()
 
     def append(self, vals):

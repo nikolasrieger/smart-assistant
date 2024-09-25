@@ -36,7 +36,6 @@ DO_NOT_CHECK = [
 TIME_DELTA = 1
 INFO_MESSAGES = True
 
-# TODO: Add speech output
 # TODO: find when done
 # TODO: maybe something with Screen Delta?
 # TODO: intelligent redo of internet search
@@ -128,7 +127,7 @@ class Assistant:
                 else:
                     output, error = "Aborted by user", "Aborted by user"
                     status = "Not-Done"
-                tell(Fore.BLUE + "[OmniAssist]: " + Fore.RESET + output)
+                print(output)
             elif task_type == Tasks.CANCELTASK:
                 break
             elif task_type == Tasks.FINISHEDTASK:
@@ -136,9 +135,9 @@ class Assistant:
             elif task_type == Tasks.SKIPSTEP:
                 continue
             elif task_type == Tasks.QUESTION:
-                tell(Fore.BLUE + "[OmniAssist]: " + Fore.RESET + step["text"])
+                tell(step["text"])
             elif task_type == Tasks.TELL:
-                tell(Fore.BLUE + "[OmniAssist]: " + Fore.RESET + step["text"])
+                tell(step["text"])
             time_delta = time() - actual_time
             if time_delta < TIME_DELTA:
                 sleep(TIME_DELTA - time_delta)
