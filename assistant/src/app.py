@@ -2,29 +2,18 @@ from numpy import linspace, array, full_like, abs
 from sys import argv, exit
 from pyqtgraph import PlotWidget, mkPen, mkBrush
 from PyQt6.QtWidgets import QVBoxLayout, QWidget, QApplication, QLabel, QStackedLayout
-from PyQt6.QtCore import QTimer, Qt, QRectF, QSize, QThread
+from PyQt6.QtCore import QTimer, Qt, QRectF, QSize
 from PyQt6.QtGui import QColor, QRegion, QPainterPath, QPainter, QBrush, QPen, QPixmap
 from engine.audio_engine.stream_controller import StreamController
 from widgets.rounded_graph_item import RoundedBarGraphItem
-from helper import Assistant, INFO_MESSAGES
 from lib.llm_models.model import Model
 from lib.llm_models.embeddings import EmbeddingModel
 from dotenv import load_dotenv
-from os import getenv
-
-
-class AssistantThread(QThread):
-    def __init__(self, sc):
-        super().__init__()
-        self.sc = sc
-        self.assistant = Assistant(INFO_MESSAGES)
-
-    def run(self):
-        self.assistant.do_task("What is the time?")
+from os import getenv 
 
 
 class StreamViz(QWidget):
-    def __init__(self):
+    def __init__(self, model: Model, embedding_model: EmbeddingModel):
         super(StreamViz, self).__init__()
         self.setWindowTitle("Smart Assistant")
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
@@ -37,9 +26,6 @@ class StreamViz(QWidget):
         self.timer.timeout.connect(self.update_streamplot)
 
         self.is_playing = False
-
-        #self.assistant_thread = AssistantThread(self.sc)
-        #self.assistant_thread.start()
 
         self.main_widget = QWidget()
 
@@ -55,7 +41,7 @@ class StreamViz(QWidget):
         self.setStyleSheet("background: transparent")
         self.l.addWidget(self.p)
 
-        self.sc = StreamController(INFO_MESSAGES)
+        self.sc = StreamController(model, embedding_model)
         self.l.addWidget(self.sc)
 
         self.bar_color = QColor("#66ff99")
@@ -177,6 +163,6 @@ if __name__ == "__main__":
     model = Model(getenv("GEMINI_API_KEY"))
     embedding_model = EmbeddingModel(getenv("GEMINI_API_KEY"))
     app = QApplication(argv)
-    s = StreamViz()
+    s = StreamViz(model, embedding_model)
     s.show()
     exit(app.exec())

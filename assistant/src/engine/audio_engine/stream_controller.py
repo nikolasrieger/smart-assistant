@@ -1,9 +1,13 @@
+from __future__ import annotations
 from numpy import zeros, int32, frombuffer, median, array, concatenate
 from pyaudio import paInt16, PyAudio
 from PyQt6.QtWidgets import QWidget
 from PyQt6.QtCore import QThread, pyqtSignal
 from speech_recognition import Recognizer, Microphone, UnknownValueError, RequestError
 from colorama import Fore
+from lib.llm_models.model import Model
+from lib.llm_models.embeddings import EmbeddingModel
+from helper import Assistant, INFO_MESSAGES
 
 
 class MicThread(QThread):
@@ -25,23 +29,33 @@ class MicThread(QThread):
 
 
 class SpeechRecognitionThread(QThread):
-    def __init__(self, sc):
+    def __init__(
+        self, sc: StreamController, model: Model, embedding_model: EmbeddingModel
+    ):
         super(SpeechRecognitionThread, self).__init__()
         self.sc = sc
         self.recognizer = Recognizer()
         self.microphone = Microphone()
+        self.assistant = Assistant(model, embedding_model)
         self.running = True
+        self.started_task = False
 
     def run(self):
         while self.running:
-            self.sc.process_audio_for_text()
+            text = self.sc.process_audio_for_text()
+            if text != "":
+                if self.started_task:
+                    self.assistant.input_handler.add_input(text)
+                else:
+                    self.assistant.do_task(text)
+                self.started_task = True
 
     def stop(self):
         self.running = False
 
 
 class StreamController(QWidget):
-    def __init__(self, info):
+    def __init__(self, model: Model, embedding_model: EmbeddingModel):
         super(StreamController, self).__init__()
         self.data = zeros((100000), dtype=int32)
         self.median_data = []
@@ -52,8 +66,9 @@ class StreamController(QWidget):
         self.FORMAT = paInt16
         self.interval_ms = 150
         self.samples_per_interval = int(self.RATE * (self.interval_ms / 1000))
-        self.speech_recognition_thread = SpeechRecognitionThread(self)
-        self.info = info
+        self.speech_recognition_thread = SpeechRecognitionThread(
+            self, model, embedding_model
+        )
 
     def setup_stream(self):
         self.audio = PyAudio()
@@ -97,7 +112,8 @@ class StreamController(QWidget):
             transcription = self.speech_recognition_thread.recognizer.recognize_google(
                 audio
             )
-            if self.info: print(Fore.YELLOW + "[INFO-SPEECH]: " + Fore.RESET, transcription)
+            if INFO_MESSAGES:
+                print(Fore.YELLOW + "[INFO-SPEECH]: " + Fore.RESET, transcription)
             return transcription
         except (UnknownValueError, RequestError):
             return ""

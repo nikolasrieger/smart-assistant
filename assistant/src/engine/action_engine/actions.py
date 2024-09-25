@@ -64,8 +64,11 @@ def init_terminal():
     global process
     if OS.startswith("win"):
         terminal = "cmd.exe"
+        encoding = "cp1252"  
     else:
         terminal = "bash"
+        encoding = "utf-8" 
+
     process = Popen(
         [terminal],
         stdin=PIPE,
@@ -73,6 +76,7 @@ def init_terminal():
         stderr=PIPE,
         shell=True,
         text=True,
+        encoding=encoding, 
     )
 
 

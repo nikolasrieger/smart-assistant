@@ -44,10 +44,10 @@ INFO_MESSAGES = True
 class Assistant:
     def __init__(self, model: Model, embedding_model: EmbeddingModel):
         self.__model = model
-        self.__input_handler = InputHandler(model)
+        self.input_handler = InputHandler(model)
         self.__screen_analyzer = ScreenAnalyzer(model)
         self.__step_retriever = StepRetriever(
-            model, embedding_model, self.__input_handler
+            model, embedding_model, self.input_handler
         )
         register(self.cleanup)
         init_terminal()
