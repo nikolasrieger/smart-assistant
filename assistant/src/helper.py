@@ -1,5 +1,3 @@
-from dotenv import load_dotenv
-from os import getenv
 from colorama import Fore
 from lib.llm_models.model import Model
 from lib.llm_models.embeddings import EmbeddingModel
@@ -192,10 +190,3 @@ class Assistant:
     def cleanup(self):
         self.__model.delete_files()
 
-
-if __name__ == "__main__":
-    load_dotenv()
-    model = Model(getenv("GEMINI_API_KEY"))
-    embedding_model = EmbeddingModel(getenv("GEMINI_API_KEY"))
-    assistant = Assistant(model, embedding_model)
-    assistant.do_task("What time is it?")

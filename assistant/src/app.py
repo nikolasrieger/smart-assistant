@@ -2,10 +2,25 @@ from numpy import linspace, array, full_like, abs
 from sys import argv, exit
 from pyqtgraph import PlotWidget, mkPen, mkBrush
 from PyQt6.QtWidgets import QVBoxLayout, QWidget, QApplication, QLabel, QStackedLayout
-from PyQt6.QtCore import QTimer, Qt, QRectF, QSize
+from PyQt6.QtCore import QTimer, Qt, QRectF, QSize, QThread
 from PyQt6.QtGui import QColor, QRegion, QPainterPath, QPainter, QBrush, QPen, QPixmap
 from engine.audio_engine.stream_controller import StreamController
 from widgets.rounded_graph_item import RoundedBarGraphItem
+from helper import Assistant, INFO_MESSAGES
+from lib.llm_models.model import Model
+from lib.llm_models.embeddings import EmbeddingModel
+from dotenv import load_dotenv
+from os import getenv
+
+
+class AssistantThread(QThread):
+    def __init__(self, sc):
+        super().__init__()
+        self.sc = sc
+        self.assistant = Assistant(INFO_MESSAGES)
+
+    def run(self):
+        self.assistant.do_task("What is the time?")
 
 
 class StreamViz(QWidget):
@@ -21,7 +36,10 @@ class StreamViz(QWidget):
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_streamplot)
 
-        self.is_playing = True
+        self.is_playing = False
+
+        #self.assistant_thread = AssistantThread(self.sc)
+        #self.assistant_thread.start()
 
         self.main_widget = QWidget()
 
@@ -37,7 +55,7 @@ class StreamViz(QWidget):
         self.setStyleSheet("background: transparent")
         self.l.addWidget(self.p)
 
-        self.sc = StreamController()
+        self.sc = StreamController(INFO_MESSAGES)
         self.l.addWidget(self.sc)
 
         self.bar_color = QColor("#66ff99")
@@ -67,8 +85,9 @@ class StreamViz(QWidget):
         self.stacked_layout.addWidget(self.image)
         self.stacked_layout.addWidget(self.main_widget)
         self.setLayout(self.stacked_layout)
+        self.sc.breakdown_stream()
 
-    def paintEvent(self, event):
+    def paintEvent(self, _):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
@@ -129,8 +148,9 @@ class StreamViz(QWidget):
         self.p.setXRange(-num_bars / 2, num_bars / 2)
         self.p.update()
 
-    def mousePressEvent(self, event):
+    def mousePressEvent(self, _):
         if self.is_playing:
+            self.sc.breakdown_stream()
             self.timer.stop()
             self.p.hide()
             self.image.show()
@@ -139,6 +159,7 @@ class StreamViz(QWidget):
             self.stacked_layout.addWidget(self.image)
             self.stacked_layout.addWidget(self.main_widget)
         else:
+            self.sc.restore_stream()
             self.timer.start(200)
             self.p.setBackground(None)
             self.setStyleSheet("background: transparent")
@@ -152,6 +173,9 @@ class StreamViz(QWidget):
 
 
 if __name__ == "__main__":
+    load_dotenv()
+    model = Model(getenv("GEMINI_API_KEY"))
+    embedding_model = EmbeddingModel(getenv("GEMINI_API_KEY"))
     app = QApplication(argv)
     s = StreamViz()
     s.show()
