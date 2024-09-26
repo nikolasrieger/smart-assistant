@@ -2,7 +2,8 @@ from pyautogui import moveTo, click, scroll, dragTo, press, write, hold
 from subprocess import Popen, PIPE
 from sys import platform
 from colorama import Fore
-from pyttsx3 import init
+from gtts import gTTS
+from pygame import mixer
 
 OS = platform
 process = None
@@ -60,14 +61,13 @@ def hold_key(key: str, keys: list):
 
 def tell(text: str):
     print(Fore.BLUE + "[OmniAssist]: " + Fore.RESET + text)
-    engine = init()
-    voices = engine.getProperty('voices')
-    for voice in voices:
-        if 'en' in voice.languages:
-            engine.setProperty('voice', voice.id)
-            break
-    engine.say(text)
-    engine.runAndWait()
+
+    tts = gTTS(text=text, lang='en', slow=False)
+    tts.save("output.mp3")
+
+    mixer.init()
+    mixer.music.load("output.mp3") 
+    mixer.music.play()
 
 
 def init_terminal():

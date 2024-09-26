@@ -27,9 +27,6 @@ class MicThread(QThread):
     def stop(self):
         self.running = False
 
-    def __del__(self):
-        print("Why me?")
-
 
 class TaskThread(QThread):
     finished = pyqtSignal()
