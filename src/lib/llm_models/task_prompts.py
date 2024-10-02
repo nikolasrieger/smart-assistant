@@ -6,26 +6,31 @@ from lib.llm_models.prompts import TaskChoices, TaskDone, PromptTemplate, OS, KE
 class GenerateTasksTemplate(PromptTemplate):
     def __init__(self, action_text: str, tasks: Enum, context: str = ""):
         super().__init__()
-        prompt = """Imagine you are a smart computer assistant with textual and visual understanding helping a user to perform tasks. 
-        You can see the screen, do things on the computer and interact with the user. You got the following computer-related task from the user: {}. The OS is {}.
-        Here is some context to help you from a quick internet search: {}. Use it only, if it helps you to perform the task.
-        Perform the task in the most logial and easy way. Do not make it too complicated.
-        Break down the task into smaller actions based on your knowledge. 
-        Following tasks are possible: Task={}. Choose only from the list!
-        You can use all programs on this computer, you just need to open them and use them after that.
-        If you chose PRESSKEY as step_name, then you have to add the a list of keys you pressed in the 'keys' field. (possible keys are: {}). 
-        If the list contains more than one key, be aware, that the all keys will be held down until the last key is pressed.
-        If you chose TYPE and want to write a text, add the text to the 'text' field.
-        If you chose SCROLLUP or SCROLLDOWN, add the amount of scrolling in the 'amount' field (= number of clicks on the scrolling bar).
-        If you chose TELL, add all the text you want to tell the user in the 'text' field. Answer the complete question, do not leave anything out. 
-        Do not tell the same thing twice (check the completed tasks) and do not leave the answer out.
-        You have the permission to use the terminal. If you want to run a command on the computer, choose TERMINAL, you have to add the command you want to run in the 'text' field.
-        Use the context from the internet search for real time data. If you don't know the answer, say so.
-        Do not fill the 'text' and 'keys' field at the same time.
-        Use this JSON schema:
-            Step = {{"step_name": Task, "description": str, "keys": str, "text": str, "amount:" int}}
-        Return a 'list[Step]'. If you don't know which steps to perform or you can't perform it on a comptuer, 
-        return an empty JSON.""".format(action_text, OS, context, list(tasks), KEYS)
+        prompt = f"""
+        You are an intelligent assistant with both visual and textual capabilities, helping a user complete computer-related tasks. 
+        Task: {action_text}. OS: {OS}.
+        Context (if applicable): {context}.
+        
+        Break down the task into simple, logical steps. Choose from these tasks: {list(tasks)}. 
+
+        - You can use any program on the computer, but specify the program you’re interacting with.
+        - If using `PRESSKEY`, include the keys pressed in the 'keys' field. Keys: {KEYS}. (Multiple keys are held until the last key is pressed.)
+        - If using `TYPE`, include the text in the 'text' field.
+        - For `SCROLLUP` or `SCROLLDOWN`, provide the scroll amount (number of clicks) in the 'amount' field.
+        - If using `TELL`, include any spoken feedback or responses in the 'text' field. Answer fully without repeating.
+        - For `TERMINAL`, include any command in the 'text' field.
+        
+        Return steps as a list of JSON objects with this structure:
+        {{
+            "step_name": Task, 
+            "description": str, 
+            "keys": str, 
+            "text": str, 
+            "amount": int
+        }}. 
+        
+        If unsure of how to proceed or the task cannot be done on a computer, return an empty list.
+        """
         self._set_prompt(prompt)
 
     def generation_config(self):
@@ -33,58 +38,32 @@ class GenerateTasksTemplate(PromptTemplate):
 
 
 class EvaluateStepTemplate(PromptTemplate):
-    def __init__(
-        self,
-        action_text: str,
-        finished_steps: list,
-        next_step: dict,
-        tasks: Enum,
-        additional_info: str,
-        console_output: str,
-        screen_details: str,
-    ):
+    def __init__(self, action_text: str, finished_steps: list, next_step: dict, tasks: Enum, additional_info: str, console_output: str, screen_details: str):
         super().__init__()
-        if additional_info != "":
-            additional_info = "You got this additional info from the user: {}, include it in your evaluation.".format(
-                additional_info
-            )
-        if console_output != "":
-            additional_info += "The console output of the last executed command is: {}, include it in your evaluation.".format(
-                console_output
-            )
-        prompt = """Imagine you are a smart computer assistant with textual and visual understanding helping a user to perform tasks. 
-        You can see the screen, do things on the computer and interact with the user. You got the following computer-related task from the user: {}. {} The OS is {}.
-        This is what you see on your screen in this moment, try to use it for real-time data: {}. 
-        Do not make it more complicated than it is, just as simple as possible.
-        Here is a list of steps you already performed: {}. If the task from the user is completed, you must return 'FINISHEDTASK'.
-        Evaluate the next steps: {} you have to perform, based on your knowledge and the previous steps. Return the old or changed new steps.
-        You have a list of possible tasks you can choose from: Task={}. Choose only from the list! Do not add steps which already are done.
-        Add a description, where you add details to the chosen task like what to locate, where to click on, etc.
-        Use this JSON schema:
-            Step = {{"step_name": Task, "description": str, "keys": str, "text": str, "amount:" int}}
-        You can use all programs on this computer, you just need to open them and use them after that.
-        If you chose PRESSKEY as step_name, then you have to add the a list of keys you pressed in the 'keys' field. (possible keys are: {}).
-        If the list contains more than one key, be aware, that the all keys will be held down until the last key is pressed.
-        If you chose TYPE and want to write a text, add the text to the 'text' field.
-        If you chose SCROLLUP or SCROLLDOWN, add the amount of scrolling in the 'amount' field (= number of clicks on the scrolling bar).
-        If you chose TELL, add all the text you want to tell the user in the 'text' field. Answer the complete question, do not leave anything out. 
-        Do not tell the same thing twice (check the completed tasks) and do not leave the answer out.
-        You have the permission to use the terminal. If you want to run a command on the computer, choose TERMINAL, you have to add the command you want to run in the 'text' field.
-        If you completed the task, return 'FINISHEDTASK'. Do not do any steps more than once (except they failed). Do not retrun steps which are already done.
-        If you are sure, you cannot complete the task, return 'CANCELTASK' or 'QUESTION' if you need any help from the user. Add the Question in the 'text' field.
-        Do not fill the 'text' and 'keys' field at the same time.
-        Return a 'list[Step]'. If you don't know which steps to perform return an empty JSON.
-        The last step of the list should be 'FINISHEDTASK'. Do not add any of finished steps to the output, do not do steps more than once.
-        If the there is any additional information to cancel the task, then include 'CANCELTASK' as only step.""".format(
-            action_text,
-            additional_info,
-            OS,
-            screen_details,
-            finished_steps,
-            next_step,
-            list(tasks),
-            KEYS,
-        )
+        extra_info = f"You received additional info from the user: {additional_info}. " if additional_info else ""
+        if console_output:
+            extra_info += f"Console output: {console_output}. "
+
+        prompt = f"""
+        You are assisting a user with a task: {action_text}. OS: {OS}. 
+        Screen details: {screen_details}. {extra_info}
+        
+        Completed steps: {finished_steps}. 
+
+        Evaluate the next step: {next_step}. Adjust it if necessary to fit the task’s progression. Only use available tasks: {list(tasks)}. Avoid repeating completed steps.
+
+        Use the structure:
+        {{
+            "step_name": Task, 
+            "description": str, 
+            "keys": str, 
+            "text": str, 
+            "amount": int
+        }}.
+        
+        Return 'FINISHEDTASK' if the task is completed or 'CANCELTASK' if it cannot be done. You may ask the user for clarification with 'QUESTION' and provide the question in 'text'. 
+        If no steps are left, return an empty list.
+        """
         self._set_prompt(prompt)
 
     def generation_config(self):
@@ -94,63 +73,53 @@ class EvaluateStepTemplate(PromptTemplate):
 class ClassifyInputTemplate(PromptTemplate):
     def __init__(self, input_history: str, input: str):
         super().__init__()
-        prompt = """Imagine you are a professional classification specialist. You have a history of inputs from a user: {}.
-        Classify the new input as different task or same task: '{}'. """.format(
-            input_history, input
-        )
+        prompt = f"""
+        You are a classification expert. Review the user’s input history: {input_history}. 
+        Classify the new input: '{input}' as either a new task or the same task.
+        """
         self._set_prompt(prompt)
 
     def generation_config(self):
-        return Model.set_generation_config(
-            response_mime_type="text/x.enum", response_schema=TaskChoices
-        )
+        return Model.set_generation_config(response_mime_type="text/x.enum", response_schema=TaskChoices)
 
 
 class TaskDoneTemplate(PromptTemplate):
     def __init__(self, task: str, screen_details: str, screen_details_predicted: str):
         super().__init__()
-        prompt = """Imagine you are a smart computer assistant with textual and visual understanding helping a user to perform tasks. You get following task from the user: {}. 
-        This is what you see: {}. This is what you would probably see, if the task was completed: {}.
-        If you cannot see the task completion or it is possible that the task was completed, return done.
-        Return not done only if you are a 100 per cent sure the task was not completed.
-        """.format(task, screen_details, screen_details_predicted)
+        prompt = f"""
+        You are a smart assistant determining if a task is complete. 
+        Task: {task}. 
+        Current screen: {screen_details}. 
+        Expected screen if task were done: {screen_details_predicted}.
+        
+        If you are sure the task is done, return 'done'. Return 'not done' only if you are 100% certain it’s incomplete.
+        """
         self._set_prompt(prompt)
 
     def generation_config(self):
-        return Model.set_generation_config(
-            response_mime_type="text/x.enum", response_schema=TaskDone
-        )
+        return Model.set_generation_config(response_mime_type="text/x.enum", response_schema=TaskDone)
 
 
 class ImproveTaskTemplate(PromptTemplate):
     def __init__(self, action_text: str, screen_details: str, step: dict, tasks: Enum):
         super().__init__()
-        prompt = """Imagine you are a smart computer assistant with textual and visual understanding helping a user to perform tasks. 
-        You can see the screen, do things on the computer and interact with the user. This is the task you got from the user: {}.
-        You assessed to do this step: {}. Unfortunately, this task is either in the wrong format or did not work as expected
-        This is what you see on your screen: {}. Do not make it more complicated than it is, just as simple as possible.
-        Improve the task in a way that it can be executed successfully. Return the improved task in the same format as the original task.
-        You have a list of possible tasks you can choose from: Task={}. Choose only from the list! Do not add steps which already are done.
-        Add a description, where you add details to the chosen task like what to locate, where to click on, etc.
-        Use this JSON schema:
-            Step = {{"step_name": Task, "description": str, "keys": str, "text": str, amount: int}}
-        You can use all programs on this computer, you just need to open them and use them after that.
-        If you chose PRESSKEY as step_name, then you have to add the a list of keys you pressed in the 'keys' field. (possible keys are: {}).
-        If the list contains more than one key, be aware, that the all keys will be held down until the last key is pressed.
-        If you chose TYPE and want to write a text, add the text to the 'text' field.
-        If you chose SCROLLUP or SCROLLDOWN, add the amount of scrolling in the 'amount' field (= number of clicks on the scrolling bar).
-        If you chose TELL, add all the text you want to tell the user in the 'text' field. Answer the complete question, do not leave anything out. 
-        Do not tell the same thing twice (check the completed steps) and do not leave the answer out.
-        You have the permission to use the terminal. If you want to run a command on the computer, choose TERMINAL, you have to add the command you want to run in the 'text' field.
-        If you are sure, you cannot complete the task, return 'CANCELTASK' or 'QUESTION' if you need any help from the user. Add the Question in the 'text' field.
-        Do not fill the 'text' and 'keys' field at the same time.
-        Return a 'Step'. If you don't know which steps to perform return an empty JSON.""".format(
-            action_text,
-            step,
-            screen_details,
-            list(tasks),
-            KEYS,
-        )
+        prompt = f"""
+        You are an intelligent assistant optimizing a task step. 
+        Task: {action_text}. Screen: {screen_details}. 
+
+        The step needs improvement: {step}. Simplify it to make it work correctly.
+
+        Use tasks from the list: {list(tasks)} and provide clear descriptions of what to do.
+
+        Return the improved step in the same format:
+        {{
+            "step_name": Task, 
+            "description": str, 
+            "keys": str, 
+            "text": str, 
+            "amount": int
+        }}.
+        """
         self._set_prompt(prompt)
 
     def generation_config(self):
