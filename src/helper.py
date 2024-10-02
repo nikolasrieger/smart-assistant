@@ -36,10 +36,6 @@ DO_NOT_CHECK = [
 TIME_DELTA = 1
 INFO_MESSAGES = True
 
-# TODO: find when done
-# TODO: maybe something with Screen Delta?
-# TODO: intelligent redo of internet search
-
 
 class Assistant:
     def __init__(self, model: Model, embedding_model: EmbeddingModel):
