@@ -53,7 +53,7 @@ class EvaluateStepTemplate(PromptTemplate):
         Evaluate the next step: {next_step}. Adjust it if necessary to fit the task’s progression. Only use available tasks: {list(tasks)}. Avoid repeating completed steps.
 
         Use the structure:
-        {{
+        List{{
             "step_name": Task, 
             "description": str, 
             "keys": str, 

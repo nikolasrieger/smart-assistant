@@ -48,6 +48,16 @@ class Assistant:
         register(self.cleanup)
         init_terminal()
 
+    def waiting_for_input(self):
+        self.input_handler.clean_input()
+        while True:
+            input_text = self.input_handler.get_input()
+            if input_text != "":
+                break
+            sleep(1)
+        self.do_task(input_text)
+
+
     def do_task(self, task: str):
         self.__step_retriever.new_task(task)
         counter = 0
@@ -161,6 +171,7 @@ class Assistant:
             ]:
                 self.__print_status(status)
             counter += 1
+        self.waiting_for_input()
 
     def __print_task(self, task: dict, task_type: Tasks):
         if task_type in DO_NOT_CHECK:

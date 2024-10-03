@@ -54,7 +54,6 @@ class StreamViz(QWidget):
             radius=10,
         )
         self.p.addItem(self.pdataitem)
-        self.sc.setup_stream()
 
         self.image = QLabel(self)
         self.image.setPixmap(
@@ -71,7 +70,6 @@ class StreamViz(QWidget):
         self.stacked_layout.addWidget(self.image)
         self.stacked_layout.addWidget(self.main_widget)
         self.setLayout(self.stacked_layout)
-        self.sc.breakdown_stream()
 
     def paintEvent(self, _):
         painter = QPainter(self)

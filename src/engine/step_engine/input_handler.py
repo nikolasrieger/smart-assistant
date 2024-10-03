@@ -35,6 +35,9 @@ class InputHandler:
             return "Oldinfo: {}".format(input)
         else:
             return "Old info: {}\nNew info: {}".format(self.__input_history, input)
+        
+    def clean_input(self):
+        self.__input = ""
 
     def get_screen_details(self):
         return self.__screen_analyzer.analyze_image_details()
