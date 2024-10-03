@@ -2,6 +2,15 @@ from lib.llm_models.model import Model
 from enum import Enum
 from lib.llm_models.prompts import TaskChoices, TaskDone, PromptTemplate, OS, KEYS
 
+action_description = """
+- You can use any program on the computer, but specify the program you’re interacting with.
+- If using `PRESSKEY`, include the keys pressed in the 'keys' field. Keys: {KEYS}. (Multiple keys are held until the last key is pressed.)
+- If using `TYPE`, include the text in the 'text' field.
+- For `SCROLLUP` or `SCROLLDOWN`, provide the scroll amount (number of clicks) in the 'amount' field.
+- If using `TELL` or `QUESTION`, include any spoken feedback or responses in the 'text' field. Answer fully without repeating.
+- For `TERMINAL`, include any command in the 'text' field.
+"""
+
 
 class GenerateTasksTemplate(PromptTemplate):
     def __init__(self, action_text: str, tasks: Enum, context: str = ""):
@@ -13,12 +22,7 @@ class GenerateTasksTemplate(PromptTemplate):
         
         Break down the task into simple, logical steps. Choose from these tasks: {list(tasks)}. 
 
-        - You can use any program on the computer, but specify the program you’re interacting with.
-        - If using `PRESSKEY`, include the keys pressed in the 'keys' field. Keys: {KEYS}. (Multiple keys are held until the last key is pressed.)
-        - If using `TYPE`, include the text in the 'text' field.
-        - For `SCROLLUP` or `SCROLLDOWN`, provide the scroll amount (number of clicks) in the 'amount' field.
-        - If using `TELL`, include any spoken feedback or responses in the 'text' field. Answer fully without repeating.
-        - For `TERMINAL`, include any command in the 'text' field.
+        {action_description}
         
         Return steps as a list of JSON objects with this structure:
         {{
@@ -51,6 +55,9 @@ class EvaluateStepTemplate(PromptTemplate):
         Completed steps: {finished_steps}. 
 
         Evaluate the next step: {next_step}. Adjust it if necessary to fit the task’s progression. Only use available tasks: {list(tasks)}. Avoid repeating completed steps.
+        Do the most logical step, do not overcomplicate it, and ensure it is correct.
+
+        {action_description}
 
         Use the structure:
         List{{
@@ -110,6 +117,8 @@ class ImproveTaskTemplate(PromptTemplate):
         The step needs improvement: {step}. Simplify it to make it work correctly.
 
         Use tasks from the list: {list(tasks)} and provide clear descriptions of what to do.
+
+        {action_description}
 
         Return the improved step in the same format:
         {{
