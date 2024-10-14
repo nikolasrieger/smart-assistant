@@ -22,7 +22,16 @@ To get started, ensure you have the following:
 
 - **🐍 Python 3.x**: Required for running the assistant's core logic.
 - **📦 Libraries**: Install the required libraries from `requirements.txt`
-- **🔑 Gemini API Key**: For Visual and Textual Understanding
+- **🔑 Gemini API Key**: For visual and textual understanding, create a `.env` file for that 
+    (**Note**: Be aware, that screenshots of your screen will be sent to the Gemini Model and stored on the Google Cloud, but deleted afterwards by the assistant. Do not share any private or secret data. If you do not want that, you can simply plug-in your own model by adapting the `model.py` file.)
+
+### Installation
+
+1. Set up the virtual environment by running `python -m venv .venv`.
+2. Activate the virtual environment:
+   - On **Windows**: `.\.venv\Scripts\activate`
+   - On **Linux**: `source .venv/bin/activate`
+3. Run the backend with `python app.py`.
 
 ## ⚖️ License
 
