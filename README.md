@@ -14,6 +14,14 @@ With this assistant, users can control various applications, automate tasks, and
 - **🔄 Cross-Application Support**: Works with multiple software environments, such as browsers, text editors, and productivity tools.
 - **🧠 Context Awareness**: Recognizes the current state of your desktop to execute commands in the right context (e.g., switching between applications, interacting with open windows).
 
+## Known Limitations:
+
+Click Timing & Placement – The agent occasionally lacks precision in determining the optimal moment and location to interact.
+
+Error Recovery – If an unexpected step occurs, the agent may not always recognize the need to adjust.
+
+Overactivity – In some cases, the agent might infer additional actions beyond the intended task.
+
 ## 🚀 Getting Started
 
 ### Prerequisites
