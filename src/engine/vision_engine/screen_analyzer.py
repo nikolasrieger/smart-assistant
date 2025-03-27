@@ -11,7 +11,7 @@ from lib.llm_models.image_prompts import (
     DragPositionTemplate,
 )
 from lib.llm_models.task_prompts import TaskDoneTemplate
-from json import loads
+from json import loads, JSONDecodeError
 
 
 class ScreenAnalyzer:
@@ -32,7 +32,7 @@ class ScreenAnalyzer:
             x2, y2 = self.__convert_pos((coordinates[3], coordinates[2]), image.size)
             self.__save_image(image, ((x1, y1), (x2, y2)))
             return (self.__mid_pos(x1, x2), self.__mid_pos(y1, y2))
-        except (IndexError, TypeError):
+        except (IndexError, TypeError, JSONDecodeError):
             return (None, None)
 
     def analyze_image_details(self, image: Image = None):

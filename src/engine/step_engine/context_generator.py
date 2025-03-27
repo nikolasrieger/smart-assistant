@@ -37,7 +37,10 @@ class ContextIndex:
             embedding = self.__embedding_model.generate_embeddings(search_text)
         embedding_array = array([embedding], dtype=float32)
         _, indices = self.__index.search(embedding_array, top_k)
-        results = [self.__data[idx] for idx in indices[0]]
+        try:
+            results = [self.__data[idx] for idx in indices[0]]
+        except IndexError:
+            results = []
         return results
 
     def remove_data(self, text: list[SearchResult]):

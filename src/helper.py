@@ -52,7 +52,9 @@ class Assistant:
         self.input_handler.clean_input()
         while True:
             input_text = self.input_handler.get_input()
+            print("WAITING")
             if input_text != "":
+                print("WAITED", input_text)
                 break
             sleep(1)
         self.do_task(input_text)
@@ -72,7 +74,8 @@ class Assistant:
                 task_type = Tasks.from_string(step["step_name"])
             except ValueError:
                 status = "Retry"
-            if INFO_MESSAGES:
+                task_type = "Retry"
+            if INFO_MESSAGES and not status == "Retry":
                 self.__print_task(step, task_type)
             if task_type == Tasks.LEFTCLICK:
                 click_left()

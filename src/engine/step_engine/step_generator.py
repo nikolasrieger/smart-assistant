@@ -44,9 +44,11 @@ class StepGenerator:
             return {"step_name": "SKIPSTEP"}
         self.__step_list = loads(result)
         self.__index = 1
-        self.__evaluator.add_finished_step(self.__step_list[0])
-        return self.__step_list[0]
-
+        try:
+            self.__evaluator.add_finished_step(self.__step_list[0])
+            return self.__step_list[0]
+        except KeyError:
+            return {"step_name": "FINISHEDTASK"}
 
 class StepRetriever:
     def __init__(

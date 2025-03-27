@@ -19,7 +19,6 @@ With this assistant, users can control various applications, automate tasks, and
 ### Prerequisites
 
 To get started, ensure you have the following:
-
 - **🐍 Python 3.x**: Required for running the assistant's core logic.
 - **📦 Libraries**: Install the required libraries from `requirements.txt`
 - **🔑 Gemini API Key**: For visual and textual understanding, create a `.env` file for that 

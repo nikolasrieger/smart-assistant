@@ -4,6 +4,7 @@ from sys import platform
 from colorama import Fore
 from gtts import gTTS
 from pygame import mixer
+from time import time
 
 OS = platform
 process = None
@@ -61,12 +62,13 @@ def hold_key(key: str, keys: list):
 
 def tell(text: str):
     print(Fore.BLUE + "[OmniAssist]: " + Fore.RESET + text)
-
+    
+    time_now = time()
     tts = gTTS(text=text, lang='en', slow=False)
-    tts.save("output.mp3")
+    tts.save(f"output{time_now}.mp3")
 
     mixer.init()
-    mixer.music.load("output.mp3") 
+    mixer.music.load(f"output{time_now}.mp3") 
     mixer.music.play()
 
 

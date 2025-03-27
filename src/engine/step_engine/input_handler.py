@@ -32,9 +32,9 @@ class InputHandler:
         input = self.__input
         self.__input = ""
         if input == "":
-            return "Oldinfo: {}".format(input)
+            return "Info already known about the task: {}".format(input)
         else:
-            return "Old info: {}\nNew info: {}".format(self.__input_history, input)
+            return "Info already known about the task: {}\nInfo newly gained: {}".format(self.__input_history, input)
         
     def clean_input(self):
         self.__input = ""
